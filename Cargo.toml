@@ -5,3 +5,4 @@ authors = ["Madison Huber <hubermm@live.unc.edu", "Alana Fiordalisi <fiordali@li
 edition = "2018"
 
 [dependencies]
+structopt = "0.2"

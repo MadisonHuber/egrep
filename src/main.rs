@@ -1,3 +1,6 @@
+#![allow(unused)]
+// remove above line before done
+
 /**
  * thegrep - Tar Heel egrep
  *
@@ -14,6 +17,14 @@
  * thegrep – Tar Heel Extended Global Regular Expressions Print
  * 
  */
+extern crate structopt;
+use structopt::StructOpt;
+#[derive(Debug, StructOpt)]
+#[structopt(name = "thegrep", about = "Tar Heel Extended Global Regular Expressions Print")]
+struct Options {
+    #[structopt(help = "PATTERN")]
+    pattern: String,
+}
 
 fn main() {
     println!("TODO");
