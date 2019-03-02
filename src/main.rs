@@ -22,10 +22,10 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "thegrep", about = "Tar Heel Extended Global Regular Expressions Print")]
 struct Options {
-    #[structopt(help = "PATTERN")]
+    #[structopt(help = "Regular Expression Pattern")]
     pattern: String,
 }
 
 fn main() {
-    println!("TODO");
+    let opt = Options::from_args();
 }
