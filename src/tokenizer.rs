@@ -70,7 +70,12 @@ impl<'str> Iterator for Tokenizer<'str> {
 
 impl<'str> Tokenizer<'str> {
     fn take_paren(&mut self) -> Token  {
-        Token::LParen
+        let c = self.chars.next().unwrap();
+        match c {
+            '(' => Token::LParen,
+            ')' => Token::RParen,
+            _ => panic!("Not a parenthesis"),
+        }
     }
 }
 
