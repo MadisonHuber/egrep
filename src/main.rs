@@ -20,13 +20,16 @@
 extern crate structopt;
 use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
-#[structopt(name = "thegrep", about = "Tar Heel Extended Global Regular Expressions Print")]
+#[structopt(name = "thegrep", about = "Tar Heel egrep")]
 struct Options {
     #[structopt(help = "Regular Expression Pattern")]
     pattern: String,
 
     #[structopt(short = "p", long = "parse", help = "Show Parsed AST")]
     parse: bool,
+
+    #[structopt(short = "t", long = "tokens", help = "Show Tokens")]
+    tokens: bool,
 }
 
 fn main() {
