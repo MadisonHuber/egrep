@@ -32,6 +32,13 @@ struct Options {
     tokens: bool,
 }
 
+pub mod tokenizer;
+use self::tokenizer::Tokenizer;
+
 fn main() {
     let opt = Options::from_args();
+    let mut tokens = Tokenizer::new("(abc)");
+    while let Some(token) = tokens.next() {
+        println!("{:?}", token);
+    }
 }
