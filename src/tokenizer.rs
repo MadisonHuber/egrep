@@ -63,8 +63,36 @@ impl<'str> Iterator for Tokenizer<'str> {
      * complete Some(Token) in the Tokenizer's input string or None at all.
      */
     fn next(&mut self) -> Option<Token> {
-        self.lex_whitespace(); // implement this!
+        Some(self.take_paren())
         // continue implementing
     }
+}
+
+impl<'str> Tokenizer<'str> {
+    fn take_paren(&mut self) -> Token  {
+        Token::LParen
+    }
+}
+
+/**
+ * Unit tests for helper methods.
+ */
+
+#[cfg(test)]
+mod helper_method {
+    use super::*;
+    
+    #[test]
+    fn take_lparen() {
+        let mut tokens = Tokenizer::new("(");
+        assert_eq!(tokens.take_paren(), Token::LParen);
+    }
+
+    #[test]
+    fn take_rparen() {
+        let mut tokens = Tokenizer::new(")");
+        assert_eq!(tokens.take_paren(), Token::RParen);
+    }
+
 }
 
