@@ -24,6 +24,9 @@ use structopt::StructOpt;
 struct Options {
     #[structopt(help = "PATTERN")]
     pattern: String,
+
+    #[structopt(short = "p", long = "parse", help = "Show Parsed AST")]
+    parse: bool,
 }
 
 fn main() {
