@@ -99,7 +99,8 @@ impl<'str> Tokenizer<'str> {
     }
 
     fn take_char(&mut self) -> Token {
-        Token::Char('a')
+        let c = self.chars.next().unwrap();
+        Token::Char(c)
     }
 }
 
