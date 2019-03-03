@@ -42,3 +42,12 @@ fn main() {
         println!("{:?}", token);
     }
 }
+
+fn eval_show_tokens(input: &str) {
+    println!("~~~Tokens~~~");
+    let mut tokens = Tokenizer::new(input);
+    while let Some(token) = tokens.next() {
+        println!("{:?}", token);
+    }
+    print!("\n");
+}
