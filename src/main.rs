@@ -37,14 +37,16 @@ use self::tokenizer::Tokenizer;
 
 fn main() {
     let opt = Options::from_args();
-    let mut tokens = Tokenizer::new("(abc)");
-    while let Some(token) = tokens.next() {
-        println!("{:?}", token);
+    eval(&"(ab*c)", &opt);
+}
+
+fn eval(input: &str, options: &Options) {
+    if options.tokens {
+        eval_show_tokens(input);
     }
 }
 
 fn eval_show_tokens(input: &str) {
-    println!("~~~Tokens~~~");
     let mut tokens = Tokenizer::new(input);
     while let Some(token) = tokens.next() {
         println!("{:?}", token);
