@@ -79,6 +79,7 @@ impl<'str> Tokenizer<'str> {
     }
 
     fn take_union_bar(&mut self) -> Token {
+        self.chars.next();
         Token::UnionBar
     }
 }
@@ -107,6 +108,7 @@ mod helper_method {
     fn take_union_bar() {
         let mut tokens = Tokenizer::new("|");
         assert_eq!(tokens.take_union_bar(), Token::UnionBar);
+        assert_eq!(tokens.chars.next(), None);
     }
 
 }
