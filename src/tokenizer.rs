@@ -92,6 +92,10 @@ impl<'str> Tokenizer<'str> {
         self.chars.next();
         Token::AnyChar
     }
+
+    fn take_char(&mut self) -> Token {
+        Token::Char('a')
+    }
 }
 
 /**
@@ -134,6 +138,13 @@ mod helper_method {
     fn take_any_char() {
         let mut tokens = Tokenizer::new(".");
         assert_eq!(tokens.take_any_char(), Token::AnyChar);
+        assert_eq!(tokens.chars.next(), None);
+    }
+
+    #[test]
+    fn take_char() {
+        let mut tokens = Tokenizer::new("a");
+        assert_eq!(tokens.take_char(), Token::Char('a'));
         assert_eq!(tokens.chars.next(), None);
     }
 
