@@ -69,6 +69,14 @@ impl<'str> Iterator for Tokenizer<'str> {
 }
 
 /**
+ * Unit Tests for the `next` method.
+ */
+#[cfg(test)]
+mod iterator {
+    use super::*;
+}
+
+/**
  * Tokenizer helper methods are located in this section.
  * These are internal methods only.
  */
