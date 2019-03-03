@@ -74,6 +74,12 @@ impl<'str> Iterator for Tokenizer<'str> {
 #[cfg(test)]
 mod iterator {
     use super::*;
+
+    #[test]
+    fn empty() {
+        let mut tokens = Tokenizer::new("");
+        assert_eq!(tokens.next(), None);
+    }
 }
 
 /**
