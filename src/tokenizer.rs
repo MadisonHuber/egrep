@@ -66,11 +66,12 @@ impl<'str> Iterator for Tokenizer<'str> {
         if let Some(c) = self.chars.next() {
             Some(
                 match c {
-                    '(' | ')' => self.take_paren(c),
-                    '|' => self.take_union_bar(),
-                    '*' => self.take_kleene_star(),
-                    '.' => self.take_any_char(),
-                    _ => self.take_char(c),
+                    '(' => Token::LParen,
+                    ')' => Token::RParen,
+                    '|' => Token::UnionBar,
+                    '*' => Token::KleeneStar,
+                    '.' => Token::AnyChar,
+                    _ => Token::Char(c),
                 }
             )
         } else {
@@ -110,88 +111,5 @@ mod iterator {
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
     }
-}
-
-/**
- * Tokenizer helper methods are located in this section.
- * These are internal methods only.
- */
-
-impl<'str> Tokenizer<'str> {
-    fn take_paren(&mut self, c: char) -> Token  {
-        match c {
-            '(' => Token::LParen,
-            ')' => Token::RParen,
-            _ => panic!("Not a parenthesis"),
-        }
-    }
-
-    fn take_union_bar(&mut self) -> Token {
-        Token::UnionBar
-    }
-
-    fn take_kleene_star(&mut self) -> Token {
-        Token::KleeneStar
-    }
-
-    fn take_any_char(&mut self) -> Token {
-        Token::AnyChar
-    }
-
-    fn take_char(&mut self, c: char) -> Token {
-        Token::Char(c)
-    }
-}
-
-/**
- * Unit tests for helper methods.
- */
-
-#[cfg(test)]
-mod helper_method {
-    use super::*;
-    
-    #[test]
-    fn take_lparen() {
-        let mut tokens = Tokenizer::new("(");
-        assert_eq!(tokens.take_paren(), Token::LParen);
-        assert_eq!(tokens.chars.next(), None);
-    }
-
-    #[test]
-    fn take_rparen() {
-        let mut tokens = Tokenizer::new(")");
-        assert_eq!(tokens.take_paren(), Token::RParen);
-        assert_eq!(tokens.chars.next(), None);
-    }
-
-    #[test]
-    fn take_union_bar() {
-        let mut tokens = Tokenizer::new("|");
-        assert_eq!(tokens.take_union_bar(), Token::UnionBar);
-        assert_eq!(tokens.chars.next(), None);
-    }
-
-    #[test]
-    fn take_kleene_star() {
-        let mut tokens = Tokenizer::new("*");
-        assert_eq!(tokens.take_kleene_star(), Token::KleeneStar);
-        assert_eq!(tokens.chars.next(), None);
-    }
-
-    #[test]
-    fn take_any_char() {
-        let mut tokens = Tokenizer::new(".");
-        assert_eq!(tokens.take_any_char(), Token::AnyChar);
-        assert_eq!(tokens.chars.next(), None);
-    }
-
-    #[test]
-    fn take_char() {
-        let mut tokens = Tokenizer::new("a");
-        assert_eq!(tokens.take_char(), Token::Char('a'));
-        assert_eq!(tokens.chars.next(), None);
-    }
-
 }
 
