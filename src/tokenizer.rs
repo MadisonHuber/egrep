@@ -121,6 +121,7 @@ mod helper_method {
     fn take_kleene_star() {
         let mut tokens = Tokenizer::new("*");
         assert_eq!(tokens.take_kleene_star(), Token::KleeneStar);
+        assert_eq!(tokens.chars.next(), None);
     }
 
 }
