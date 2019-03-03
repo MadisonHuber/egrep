@@ -68,6 +68,11 @@ impl<'str> Iterator for Tokenizer<'str> {
     }
 }
 
+/**
+ * Tokenizer helper methods are located in this section.
+ * These are internal methods only.
+ */
+
 impl<'str> Tokenizer<'str> {
     fn take_paren(&mut self) -> Token  {
         let c = self.chars.next().unwrap();
