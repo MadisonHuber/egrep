@@ -82,6 +82,10 @@ impl<'str> Tokenizer<'str> {
         self.chars.next();
         Token::UnionBar
     }
+
+    fn take_kleene_star(&mut self) -> Token {
+        Token::KleeneStar
+    }
 }
 
 /**
@@ -96,12 +100,14 @@ mod helper_method {
     fn take_lparen() {
         let mut tokens = Tokenizer::new("(");
         assert_eq!(tokens.take_paren(), Token::LParen);
+        assert_eq!(tokens.chars.next(), None);
     }
 
     #[test]
     fn take_rparen() {
         let mut tokens = Tokenizer::new(")");
         assert_eq!(tokens.take_paren(), Token::RParen);
+        assert_eq!(tokens.chars.next(), None);
     }
 
     #[test]
@@ -109,6 +115,12 @@ mod helper_method {
         let mut tokens = Tokenizer::new("|");
         assert_eq!(tokens.take_union_bar(), Token::UnionBar);
         assert_eq!(tokens.chars.next(), None);
+    }
+
+    #[test]
+    fn take_kleene_star() {
+        let mut tokens = Tokenizer::new("*");
+        assert_eq!(tokens.take_kleene_star(), Token::KleeneStar);
     }
 
 }
