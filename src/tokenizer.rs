@@ -89,6 +89,7 @@ impl<'str> Tokenizer<'str> {
     }
 
     fn take_any_char(&mut self) -> Token {
+        self.chars.next();
         Token::AnyChar
     }
 }
