@@ -84,6 +84,7 @@ impl<'str> Tokenizer<'str> {
     }
 
     fn take_kleene_star(&mut self) -> Token {
+        self.chars.next();
         Token::KleeneStar
     }
 }
