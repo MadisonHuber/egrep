@@ -63,14 +63,14 @@ impl<'str> Iterator for Tokenizer<'str> {
      * complete Some(Token) in the Tokenizer's input string or None at all.
      */
     fn next(&mut self) -> Option<Token> {
-        if let Some(c) = self.chars.peek() {
+        if let Some(c) = self.chars.next() {
             Some(
                 match c {
-                    '(' | ')' => self.take_paren(),
+                    '(' | ')' => self.take_paren(c),
                     '|' => self.take_union_bar(),
                     '*' => self.take_kleene_star(),
                     '.' => self.take_any_char(),
-                    _ => self.take_char(),
+                    _ => self.take_char(c),
                 }
             )
         } else {
@@ -118,8 +118,7 @@ mod iterator {
  */
 
 impl<'str> Tokenizer<'str> {
-    fn take_paren(&mut self) -> Token  {
-        let c = self.chars.next().unwrap();
+    fn take_paren(&mut self, c: char) -> Token  {
         match c {
             '(' => Token::LParen,
             ')' => Token::RParen,
@@ -128,22 +127,18 @@ impl<'str> Tokenizer<'str> {
     }
 
     fn take_union_bar(&mut self) -> Token {
-        self.chars.next();
         Token::UnionBar
     }
 
     fn take_kleene_star(&mut self) -> Token {
-        self.chars.next();
         Token::KleeneStar
     }
 
     fn take_any_char(&mut self) -> Token {
-        self.chars.next();
         Token::AnyChar
     }
 
-    fn take_char(&mut self) -> Token {
-        let c = self.chars.next().unwrap();
+    fn take_char(&mut self, c: char) -> Token {
         Token::Char(c)
     }
 }
