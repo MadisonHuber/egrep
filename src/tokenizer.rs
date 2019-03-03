@@ -77,6 +77,10 @@ impl<'str> Tokenizer<'str> {
             _ => panic!("Not a parenthesis"),
         }
     }
+
+    fn take_union_bar(&mut self) -> Token {
+        Token::UnionBar
+    }
 }
 
 /**
@@ -97,6 +101,12 @@ mod helper_method {
     fn take_rparen() {
         let mut tokens = Tokenizer::new(")");
         assert_eq!(tokens.take_paren(), Token::RParen);
+    }
+
+    #[test]
+    fn take_union_bar() {
+        let mut tokens = Tokenizer::new("|");
+        assert_eq!(tokens.take_union_bar(), Token::UnionBar);
     }
 
 }
