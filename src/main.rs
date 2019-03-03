@@ -37,7 +37,7 @@ use self::tokenizer::Tokenizer;
 
 fn main() {
     let opt = Options::from_args();
-    eval(&"(ab*c)", &opt);
+    eval(&opt.pattern, &opt);
 }
 
 fn eval(input: &str, options: &Options) {
