@@ -110,6 +110,7 @@ mod iterator {
         assert_eq!(tokens.next(), Some(Token::RParen));
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), None);
     }
 }
 
