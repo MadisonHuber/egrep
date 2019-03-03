@@ -63,8 +63,19 @@ impl<'str> Iterator for Tokenizer<'str> {
      * complete Some(Token) in the Tokenizer's input string or None at all.
      */
     fn next(&mut self) -> Option<Token> {
-        Some(self.take_paren())
-        // continue implementing
+        if let Some(c) = self.chars.peek() {
+            Some(
+                match c {
+                    '(' | ')' => self.take_paren(),
+                    '|' => self.take_union_bar(),
+                    '*' => self.take_kleene_star(),
+                    '.' => self.take_any_char(),
+                    _ => self.take_char(),
+                }
+            )
+        } else {
+            None
+        }
     }
 }
 
