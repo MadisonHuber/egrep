@@ -59,7 +59,22 @@ impl<'tokens> Parser<'tokens> {
     
     // Atom -> LParen <RegExpr> RParen | AnyChar | Char
     fn atom(&mut self) -> Result<AST, String> {
-        Ok(AST::AnyChar)
+        let t = self.take_next_token()?;
+
+        // if AnyChar or Char, return an Ok of that enum variant
+        // if LParen, get RegExpr coming up then get the RParen too
+        // and return Ok of that RegExpr
+        // otherwise error
+        match t {
+            Token::AnyChar => Ok(AST::AnyChar),
+            Token::Char(c) => Ok(AST::Char(c)),
+            Token::LParen => {
+                let expr = self.reg_expr()?;
+                self.consume_token(Token::RParen)?;
+                Ok(expr)
+            },
+            _ => Err(format!("Unexpected token: {:?}", t)),
+        }
     }
 }
 
@@ -75,8 +90,34 @@ mod private_api {
         use super::*;
 
         #[test]
-        fn atom() {
+        fn atom_anychar() {
             assert_eq!(Parser::from(".").atom().unwrap(), AST::AnyChar);
+        }
+
+        #[test]
+        fn atom_char() {
+            assert_eq!(Parser::from("a").atom().unwrap(), AST::Char('a'));
+        }
+
+        #[test]
+        fn atom_parens_anychar() {
+            assert_eq!(Parser::from("(.)").atom().unwrap(), AST::AnyChar);
+        }
+
+        #[test]
+        fn atom_parens_char() {
+            assert_eq!(Parser::from("(h)").atom().unwrap(), AST::Char('h'));
+        }
+
+        #[test]
+        fn atom_nested_parens() {
+            assert_eq!(Parser::from("((.))").atom().unwrap(), AST::AnyChar);
+        }
+
+        #[test]
+        fn atom_parens_err() {
+            assert_eq!(Parser::from("(").atom(), Err(format!("Unexpected end of input")));
+            assert_eq!(Parser::from("()").atom(), Err(format!("Unexpected token: {:?}", Token::RParen)));
         }
     }
 
