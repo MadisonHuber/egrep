@@ -79,9 +79,15 @@ impl<'tokens> Parser<'tokens> {
 
         // 0 or 1 (UnionBar <RegExp>)
         // peek because going to take later on in other methods
-        if let Ok(t) = self.consume_token(Token::UnionBar) {
-            let rhs = self.reg_expr()?;
-            Ok(ast_alternation(expression, rhs))
+        if let Some(t) = self.tokens.peek() {
+            match t {
+                Token::UnionBar => {
+                    self.take_next_token()?;
+                    let rhs = self.reg_expr()?;
+                    Ok(ast_alternation(expression, rhs))
+                },
+                _ => Ok(expression),
+            }
         } else {
             Ok(expression)
         }
