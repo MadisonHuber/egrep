@@ -24,6 +24,27 @@ pub enum AST {
     AnyChar,
 }
 
+/* Helper factory functions for building ASTs */
+pub fn alternation(lhs: AST, rhs: AST) -> AST {
+    AST::Alternation(Box::new(lhs), Box::new(rhs))
+}
+
+pub fn catenation(lhs: AST, rhs: AST) -> AST {
+    AST::Catenation(Box::new(lhs), Box::new(rhs))
+}
+
+pub fn closure(val: AST) -> AST {
+    AST::Closure(Box::new(val))
+}
+
+pub fn ast_char(c: char) -> AST {
+    AST::Char(c)
+}
+
+pub fn any_char() -> AST {
+    AST::AnyChar
+}
+
 /* == End Syntax Tree Elements == */
 
 pub struct Parser<'tokens> {
