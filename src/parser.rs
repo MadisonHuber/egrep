@@ -75,7 +75,16 @@ impl<'tokens> Parser<'tokens> {
 impl<'tokens> Parser<'tokens> {
     // RegExpr -> atom
     fn reg_expr(&mut self) -> Result<AST, String> {
-        self.catenation()
+        let expression = self.catenation()?;
+
+        // 0 or 1 (UnionBar <RegExp>)
+        // peek because going to take later on in other methods
+        if let Ok(t) = self.consume_token(Token::UnionBar) {
+            let rhs = self.reg_expr()?;
+            Ok(ast_alternation(expression, rhs))
+        } else {
+            Ok(expression)
+        }
     }
     
     // Atom -> LParen <RegExpr> RParen | AnyChar | Char
@@ -226,6 +235,40 @@ mod private_api {
         #[test]
         fn catenation_parens() {
             assert_eq!(Parser::from("(ab)*").catenation().unwrap(), ast_closure(ast_catenation(ast_char('a'), ast_char('b'))));
+        }
+    }
+
+    mod lvl3 {
+        use super::*;
+
+        #[test]
+        fn reg_expr_atom() {
+            assert_eq!(Parser::from("a").reg_expr().unwrap(), ast_char('a'));
+        }
+
+        #[test]
+        fn reg_expr_cat() {
+            assert_eq!(Parser::from("ab").reg_expr().unwrap(), ast_catenation(ast_char('a'), ast_char('b')));
+        }
+
+        #[test]
+        fn reg_expr_cat_closure() {
+            assert_eq!(Parser::from("ab*").reg_expr().unwrap(), ast_catenation(ast_char('a'), ast_closure(ast_char('b'))));
+        }
+
+        #[test]
+        fn reg_expr_alternation() {
+            assert_eq!(Parser::from("a|b").reg_expr().unwrap(), ast_alternation(ast_char('a'), ast_char('b')));
+        }
+
+        #[test]
+        fn reg_expr_any_star() {
+            assert_eq!(Parser::from(".*").reg_expr().unwrap(), ast_closure(ast_any_char()));
+        }
+
+        #[test]
+        fn reg_expr_all() {
+            assert_eq!(Parser::from("(a|b.)*").reg_expr().unwrap(), ast_closure(ast_alternation(ast_char('a'), ast_catenation(ast_char('b'), ast_any_char()))));
         }
     }
 
