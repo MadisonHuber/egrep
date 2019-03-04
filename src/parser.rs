@@ -87,15 +87,30 @@ impl<'tokens> Parser<'tokens> {
         // and return Ok of that RegExpr
         // otherwise error
         match t {
-            Token::AnyChar => Ok(AST::AnyChar),
-            Token::Char(c) => Ok(AST::Char(c)),
-            Token::LParen => {
-                let expr = self.reg_expr()?;
-                self.consume_token(Token::RParen)?;
-                Ok(expr)
-            },
+            Token::AnyChar => self.handle_any_char(),
+            Token::Char(c) => self.handle_char(c),
+            Token::LParen => self.handle_parens(),
             _ => Err(format!("Unexpected token: {:?}", t)),
         }
+    }
+
+    fn handle_any_char(&mut self) -> Result<AST, String> {
+        Ok(any_char())
+    }
+
+    fn handle_char(&mut self, c: char) -> Result<AST, String> {
+        Ok(ast_char(c))
+    }
+
+    fn handle_parens(&mut self) -> Result<AST, String> {
+        // get expression coming after lparen
+        // if not valid, propagate error up
+        let express = self.reg_expr()?;
+
+        // after getting lparen and expression, consume rparen or if that's not next
+        // then propagate the corresponding error
+        self.consume_token(Token::RParen)?;
+        Ok(express)
     }
 }
 
