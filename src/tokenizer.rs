@@ -5,7 +5,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 /**
- * thbc - Tar Heel Basic Calculator
+ * thegrep - Tar Heel Extended Global Regular Expression Print
  *
  * Author(s): Alana Fiordalisi, Madison Huber
  * ONYEN(s): fiordali, hubermm
