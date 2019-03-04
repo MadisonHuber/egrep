@@ -75,7 +75,7 @@ impl<'tokens> Parser<'tokens> {
 impl<'tokens> Parser<'tokens> {
     // RegExpr -> atom
     fn reg_expr(&mut self) -> Result<AST, String> {
-        self.atom()
+        self.catenation()
     }
     
     // Atom -> LParen <RegExpr> RParen | AnyChar | Char
@@ -117,11 +117,26 @@ impl<'tokens> Parser<'tokens> {
         let atm = self.atom()?;
         if let Some(c) = self.tokens.peek() {
             match c {
-                Token::KleeneStar => Ok(ast_closure(atm)),
+                Token::KleeneStar => {
+                    self.take_next_token()?;
+                    Ok(ast_closure(atm))
+                },
                 _ => Ok(atm),
             }
         } else {
             Ok(atm)
+        }
+    }
+
+    fn catenation(&mut self) -> Result<AST, String> {
+        let clos = self.closure()?;
+        if let Some(t) = self.tokens.peek() {
+            match t {
+                Token::LParen | Token::AnyChar | Token::Char(_) => Ok(ast_catenation(clos, self.catenation()?)),
+                _ => Ok(clos), 
+            }
+        } else {
+            Ok(clos)
         }
     }
 }
@@ -188,6 +203,30 @@ mod private_api {
         }
 
         // add tests with concatenation and closure combined
+    }
+
+    mod lvl2 {
+        use super::*;
+
+        #[test]
+        fn catenation_atom() {
+            assert_eq!(Parser::from("a").catenation().unwrap(), ast_char('a'));
+        }
+
+        #[test]
+        fn catenation_closure() {
+            assert_eq!(Parser::from("a*").catenation().unwrap(), ast_closure(ast_char('a')));
+        }
+
+        #[test]
+        fn catenation() {
+            assert_eq!(Parser::from("ab*").catenation().unwrap(), ast_catenation(ast_char('a'), ast_closure(ast_char('b'))));
+        }
+
+        #[test]
+        fn catenation_parens() {
+            assert_eq!(Parser::from("(ab)*").catenation().unwrap(), ast_closure(ast_catenation(ast_char('a'), ast_char('b'))));
+        }
     }
 
 }
