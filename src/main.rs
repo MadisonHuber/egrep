@@ -34,6 +34,8 @@ struct Options {
 
 pub mod tokenizer;
 use self::tokenizer::Tokenizer;
+pub mod parser;
+use self::parser::Parser;
 
 fn main() {
     let opt = Options::from_args();
@@ -50,6 +52,16 @@ fn eval_show_tokens(input: &str) {
     let mut tokens = Tokenizer::new(input);
     while let Some(token) = tokens.next() {
         println!("{:?}", token);
+    }
+    print!("\n");
+}
+
+fn eval_show_parse(input: &str) {
+    match Parser::parse(Tokenizer::new(input)) {
+        Ok(statement) => {
+            println!("{:?}", statement);
+        }
+        Err(msg) => eprintln!("thbc: {}", msg),
     }
     print!("\n");
 }
