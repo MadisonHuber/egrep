@@ -114,7 +114,15 @@ impl<'tokens> Parser<'tokens> {
     }
 
     fn closure(&mut self) -> Result<AST, String> {
-        Ok(ast_closure(ast_any_char()))
+        let atm = self.atom()?;
+        if let Some(c) = self.tokens.peek() {
+            match c {
+                Token::KleeneStar => Ok(ast_closure(atm)),
+                _ => Ok(atm),
+            }
+        } else {
+            Ok(atm)
+        }
     }
 }
 
@@ -168,6 +176,18 @@ mod private_api {
         fn closure_atom() {
             assert_eq!(Parser::from("a").closure().unwrap(), ast_char('a'));
         }
+
+        #[test]
+        fn closure() {
+            assert_eq!(Parser::from("b*").closure().unwrap(), ast_closure(ast_char('b')));
+        }
+
+        #[test]
+        fn closure_parents() {
+            assert_eq!(Parser::from("(a)*").closure().unwrap(), ast_closure(ast_char('a')));
+        }
+
+        // add tests with concatenation and closure combined
     }
 
 }
