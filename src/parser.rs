@@ -25,15 +25,15 @@ pub enum AST {
 }
 
 /* Helper factory functions for building ASTs */
-pub fn alternation(lhs: AST, rhs: AST) -> AST {
+pub fn ast_alternation(lhs: AST, rhs: AST) -> AST {
     AST::Alternation(Box::new(lhs), Box::new(rhs))
 }
 
-pub fn catenation(lhs: AST, rhs: AST) -> AST {
+pub fn ast_catenation(lhs: AST, rhs: AST) -> AST {
     AST::Catenation(Box::new(lhs), Box::new(rhs))
 }
 
-pub fn closure(val: AST) -> AST {
+pub fn ast_closure(val: AST) -> AST {
     AST::Closure(Box::new(val))
 }
 
@@ -41,7 +41,7 @@ pub fn ast_char(c: char) -> AST {
     AST::Char(c)
 }
 
-pub fn any_char() -> AST {
+pub fn ast_any_char() -> AST {
     AST::AnyChar
 }
 
@@ -95,7 +95,7 @@ impl<'tokens> Parser<'tokens> {
     }
 
     fn handle_any_char(&mut self) -> Result<AST, String> {
-        Ok(any_char())
+        Ok(ast_any_char())
     }
 
     fn handle_char(&mut self, c: char) -> Result<AST, String> {
@@ -111,6 +111,10 @@ impl<'tokens> Parser<'tokens> {
         // then propagate the corresponding error
         self.consume_token(Token::RParen)?;
         Ok(express)
+    }
+
+    fn closure(&mut self) -> Result<AST, String> {
+        Ok(ast_closure(ast_any_char()))
     }
 }
 
@@ -154,6 +158,15 @@ mod private_api {
         fn atom_parens_err() {
             assert_eq!(Parser::from("(").atom(), Err(format!("Unexpected end of input")));
             assert_eq!(Parser::from("()").atom(), Err(format!("Unexpected token: {:?}", Token::RParen)));
+        }
+    }
+
+    mod lvl1 {
+        use super::*;
+
+        #[test]
+        fn closure_atom() {
+            assert_eq!(Parser::from("a").closure().unwrap(), ast_char('a'));
         }
     }
 
