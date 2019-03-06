@@ -109,10 +109,12 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
+    // Produces an AST Result for AnyChar
     fn handle_any_char(&mut self) -> Result<AST, String> {
         Ok(ast_any_char())
     }
 
+    // Produces an AST Result for Char, with the given char
     fn handle_char(&mut self, c: char) -> Result<AST, String> {
         Ok(ast_char(c))
     }
@@ -128,6 +130,10 @@ impl<'tokens> Parser<'tokens> {
         Ok(express)
     }
 
+    // Closure -> Atom KleeneStar?
+    // Take the atom, peek for KleeneStar
+    // If KleeneStar, take token and give back a Closure Result with the atom
+    // If no KleeneStar, give back a Result with the atom
     fn closure(&mut self) -> Result<AST, String> {
         let atm = self.atom()?;
         if let Some(c) = self.tokens.peek() {
@@ -143,6 +149,11 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
+    // Catenation -> <Closure> <Catenation>?
+    // Take the Closure, peek for LParen, AnyChar, Char
+    // If match is found, give back a Catenation with the Closure
+    // and check for another Catenation
+    // If no match is found, give back a Result with the Closure
     fn catenation(&mut self) -> Result<AST, String> {
         let clos = self.closure()?;
         if let Some(t) = self.tokens.peek() {
