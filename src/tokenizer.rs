@@ -1,4 +1,4 @@
-#[allow(unused)]
+#![allow(unused)]
 // remove this line later
 
 use std::iter::Peekable;
