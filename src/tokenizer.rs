@@ -1,6 +1,3 @@
-#![allow(unused)]
-// remove this line later
-
 use std::iter::Peekable;
 use std::str::Chars;
 

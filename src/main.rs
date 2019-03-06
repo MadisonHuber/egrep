@@ -1,6 +1,3 @@
-#![allow(unused)]
-// remove above line before done
-
 /**
  * thegrep - Tar Heel egrep
  *
