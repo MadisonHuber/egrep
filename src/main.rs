@@ -46,6 +46,10 @@ fn eval(input: &str, options: &Options) {
     if options.tokens {
         eval_show_tokens(input);
     }
+
+    if options.parse {
+        eval_show_parse(input);
+    }   
 }
 
 fn eval_show_tokens(input: &str) {
@@ -61,7 +65,7 @@ fn eval_show_parse(input: &str) {
         Ok(statement) => {
             println!("{:?}", statement);
         }
-        Err(msg) => eprintln!("thbc: {}", msg),
+        Err(msg) => eprintln!("thegrep: {}", msg),
     }
     print!("\n");
 }
