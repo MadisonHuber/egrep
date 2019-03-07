@@ -12,7 +12,7 @@
 /**
  *
  * thegrep – Tar Heel Extended Global Regular Expressions Print
- * 
+ *
  */
 extern crate structopt;
 use structopt::StructOpt;
@@ -46,7 +46,7 @@ fn eval(input: &str, options: &Options) {
 
     if options.parse {
         eval_show_parse(input);
-    }   
+    }
 }
 
 fn eval_show_tokens(input: &str) {

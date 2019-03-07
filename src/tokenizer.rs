@@ -49,7 +49,7 @@ impl<'str> Tokenizer<'str> {
 }
 
 /**
- * The Iterator trait is implemented for Tokenizer. It will produce items of 
+ * The Iterator trait is implemented for Tokenizer. It will produce items of
  * type Token and has a `next` method that returns Option<Token>.
  */
 impl<'str> Iterator for Tokenizer<'str> {
@@ -61,16 +61,14 @@ impl<'str> Iterator for Tokenizer<'str> {
      */
     fn next(&mut self) -> Option<Token> {
         if let Some(c) = self.chars.next() {
-            Some(
-                match c {
-                    '(' => Token::LParen,
-                    ')' => Token::RParen,
-                    '|' => Token::UnionBar,
-                    '*' => Token::KleeneStar,
-                    '.' => Token::AnyChar,
-                    _ => Token::Char(c),
-                }
-            )
+            Some(match c {
+                '(' => Token::LParen,
+                ')' => Token::RParen,
+                '|' => Token::UnionBar,
+                '*' => Token::KleeneStar,
+                '.' => Token::AnyChar,
+                _ => Token::Char(c),
+            })
         } else {
             None
         }
@@ -110,4 +108,3 @@ mod iterator {
         assert_eq!(tokens.next(), None);
     }
 }
-
