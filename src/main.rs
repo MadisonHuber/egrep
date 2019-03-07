@@ -54,7 +54,6 @@ fn eval_show_tokens(input: &str) {
     while let Some(token) = tokens.next() {
         println!("{:?}", token);
     }
-    print!("\n");
 }
 
 fn eval_show_parse(input: &str) {
@@ -64,5 +63,4 @@ fn eval_show_parse(input: &str) {
         }
         Err(msg) => eprintln!("thegrep: {}", msg),
     }
-    print!("\n");
 }

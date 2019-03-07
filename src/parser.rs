@@ -120,22 +120,26 @@ mod public_api {
 impl<'tokens> Parser<'tokens> {
     // RegExpr -> <Catenation> (UnionBar <RegExpr>)?
     fn reg_expr(&mut self) -> Result<AST, String> {
-        let expression = self.catenation()?;
+        let lhs = self.catenation()?;
 
-        // 0 or 1 (UnionBar <RegExp>)
-        // peek because going to take later on in other methods
+        // If UnionBar, return Alternation Result
+        // Peek because going to take later on in other methods
         if let Some(t) = self.tokens.peek() {
             match t {
-                Token::UnionBar => {
-                    self.take_next_token()?;
-                    let rhs = self.reg_expr()?;
-                    Ok(ast_alternation(expression, rhs))
-                }
-                _ => Ok(expression),
+                Token::UnionBar => self.handle_union_bar(lhs),
+                _ => Ok(lhs),
             }
         } else {
-            Ok(expression)
+            Ok(lhs)
         }
+    }
+
+    // Consume Union token, get regex from right hand side
+    // Return an Alternation Result with lhs and rhs
+    fn handle_union_bar(&mut self, lhs: AST) -> Result<AST, String> {
+        self.take_next_token()?;
+        let rhs = self.reg_expr()?;
+        Ok(ast_alternation(lhs, rhs))
     }
 
     // Atom -> LParen <RegExpr> RParen | AnyChar | Char
@@ -162,11 +166,10 @@ impl<'tokens> Parser<'tokens> {
         Ok(ast_char(c))
     }
 
+    // Get regex inside parens, consume RParen
+    // Return a Result with regex
     fn handle_parens(&mut self) -> Result<AST, String> {
-        // get expression coming after lparen
         let express = self.reg_expr()?;
-
-        // make sure RParen is next and we take it
         self.consume_token(Token::RParen)?;
         Ok(express)
     }
@@ -176,14 +179,11 @@ impl<'tokens> Parser<'tokens> {
         // Take the atom, peek for KleeneStar
         let atm = self.atom()?;
 
-        // If KleeneStar, take token and give back a Closure Result with the atom
+        // If KleeneStar, give back a Closure Result with the atom
         // If no KleeneStar, give back a Result with the atom
         if let Some(c) = self.tokens.peek() {
             match c {
-                Token::KleeneStar => {
-                    self.take_next_token()?;
-                    Ok(ast_closure(atm))
-                }
+                Token::KleeneStar => self.handle_kleene_star(atm),
                 _ => Ok(atm),
             }
         } else {
@@ -191,25 +191,33 @@ impl<'tokens> Parser<'tokens> {
         }
     }
 
+    // Consume KleeneStar token, return Closure Result with atom
+    fn handle_kleene_star(&mut self, atom: AST) -> Result<AST, String> {
+        self.take_next_token()?;
+        Ok(ast_closure(atom))
+    }
+
     // Catenation -> <Closure> <Catenation>?
     fn catenation(&mut self) -> Result<AST, String> {
         // Take the Closure
-        let clos = self.closure()?;
+        let closure = self.closure()?;
 
-        //  Peek for LParen, AnyChar, Char
-        // If match is found, give back a Catenation with the Closure
-        // and check for another Catenation
-        // If no match is found, give back a Result with the Closure
+        // Peek for LParen, AnyChar, Char
+        // If match is found, give back a Catenation Result
+        // If no match is found, give back a Closure Result
         if let Some(t) = self.tokens.peek() {
             match t {
-                Token::LParen | Token::AnyChar | Token::Char(_) => {
-                    Ok(ast_catenation(clos, self.catenation()?))
-                }
-                _ => Ok(clos),
+                Token::LParen | Token::AnyChar | Token::Char(_) => self.handle_catenation(closure),
+                _ => Ok(closure),
             }
         } else {
-            Ok(clos)
+            Ok(closure)
         }
+    }
+
+    // Return a Catenation Result with the Closure, and potentially another Catenation
+    fn handle_catenation(&mut self, closure: AST) -> Result<AST, String> {
+        Ok(ast_catenation(closure, self.catenation()?))
     }
 }
 
