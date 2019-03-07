@@ -56,7 +56,7 @@ impl<'tokens> Parser<'tokens> {
         };
 
         // Parse, and then ensure that all tokens in the expr were used.
-        // Extra tokens causes error, else the structure (usually binop tree) is returned.
+        // Extra tokens cause error, else the structure (usually binop tree) is returned.
         let result = parser.reg_expr();
         if let Some(c) = parser.tokens.next() {
             Err(format!("Expected end of input, found {:?}", c))
@@ -71,7 +71,7 @@ impl<'tokens> Parser<'tokens> {
  */
 
 impl<'tokens> Parser<'tokens> {
-    // RegExpr -> atom
+    // RegExpr -> <Catenation> (UnionBar <RegExpr>)?
     fn reg_expr(&mut self) -> Result<AST, String> {
         let expression = self.catenation()?;
 
@@ -95,9 +95,7 @@ impl<'tokens> Parser<'tokens> {
     fn atom(&mut self) -> Result<AST, String> {
         let t = self.take_next_token()?;
 
-        // if AnyChar or Char, return an Ok of that enum variant
-        // if LParen, get RegExpr coming up then get the RParen too
-        // and return Ok of that RegExpr
+        // Dispatch to helper methods if valid token
         // otherwise error
         match t {
             Token::AnyChar => self.handle_any_char(),
@@ -119,21 +117,20 @@ impl<'tokens> Parser<'tokens> {
 
     fn handle_parens(&mut self) -> Result<AST, String> {
         // get expression coming after lparen
-        // if not valid, propagate error up
         let express = self.reg_expr()?;
 
-        // after getting lparen and expression, consume rparen or if that's not next
-        // then propagate the corresponding error
+        // make sure RParen is next and we take it
         self.consume_token(Token::RParen)?;
         Ok(express)
     }
 
-    // Closure -> Atom KleeneStar?
+    // Closure -> <Atom> KleeneStar?
+    fn closure(&mut self) -> Result<AST, String> {
     // Take the atom, peek for KleeneStar
+        let atm = self.atom()?;
+
     // If KleeneStar, take token and give back a Closure Result with the atom
     // If no KleeneStar, give back a Result with the atom
-    fn closure(&mut self) -> Result<AST, String> {
-        let atm = self.atom()?;
         if let Some(c) = self.tokens.peek() {
             match c {
                 Token::KleeneStar => {
@@ -148,12 +145,14 @@ impl<'tokens> Parser<'tokens> {
     }
 
     // Catenation -> <Closure> <Catenation>?
-    // Take the Closure, peek for LParen, AnyChar, Char
+    fn catenation(&mut self) -> Result<AST, String> {
+    // Take the Closure
+        let clos = self.closure()?;
+
+        //  Peek for LParen, AnyChar, Char
     // If match is found, give back a Catenation with the Closure
     // and check for another Catenation
     // If no match is found, give back a Result with the Closure
-    fn catenation(&mut self) -> Result<AST, String> {
-        let clos = self.closure()?;
         if let Some(t) = self.tokens.peek() {
             match t {
                 Token::LParen | Token::AnyChar | Token::Char(_) => Ok(ast_catenation(clos, self.catenation()?)),
@@ -225,8 +224,6 @@ mod private_api {
         fn closure_parents() {
             assert_eq!(Parser::from("(a)*").closure().unwrap(), ast_closure(ast_char('a')));
         }
-
-        // add tests with concatenation and closure combined
     }
 
     mod lvl2 {
@@ -238,12 +235,17 @@ mod private_api {
         }
 
         #[test]
-        fn catenation_closure() {
+        fn catenation_to_closure() {
             assert_eq!(Parser::from("a*").catenation().unwrap(), ast_closure(ast_char('a')));
         }
 
         #[test]
         fn catenation() {
+            assert_eq!(Parser::from("ab").catenation().unwrap(), ast_catenation(ast_char('a'), ast_char('b')));
+        }
+
+        #[test]
+        fn catenation_closure() {
             assert_eq!(Parser::from("ab*").catenation().unwrap(), ast_catenation(ast_char('a'), ast_closure(ast_char('b'))));
         }
 
@@ -277,7 +279,7 @@ mod private_api {
         }
 
         #[test]
-        fn reg_expr_any_star() {
+        fn reg_expr_any_closure() {
             assert_eq!(Parser::from(".*").reg_expr().unwrap(), ast_closure(ast_any_char()));
         }
 
@@ -304,12 +306,7 @@ impl<'tokens> Parser<'tokens> {
     /**
      * When you expect another token and want to take it directly
      * or raise an error that you expected another token here but
-     * found the end of input. Example usage:
-     *
-     * let t: Token = self.take_next_token()?;
-     *
-     * Notice the ? usage will automatically propagate the Err or
-     * unwrap the value of Ok.
+     * found the end of input.
      */
     fn take_next_token(&mut self) -> Result<Token, String> {
         if let Some(token) = self.tokens.next() {
