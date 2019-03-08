@@ -89,9 +89,45 @@ mod iterator {
     }
 
     #[test]
+    fn next_lparen() {
+        let mut tokens = Tokenizer::new("(");
+        assert_eq!(tokens.next(), Some(Token::LParen));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn next_rparen() {
+        let mut tokens = Tokenizer::new(")");
+        assert_eq!(tokens.next(), Some(Token::RParen));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn next_union_bar() {
+        let mut tokens = Tokenizer::new("|");
+        assert_eq!(tokens.next(), Some(Token::UnionBar));
+        assert_eq!(tokens.next(), None);
+    }
+
+
+    #[test]
+    fn next_kleene_star() {
+        let mut tokens = Tokenizer::new("*");
+        assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
     fn next_any() {
         let mut tokens = Tokenizer::new(".");
         assert_eq!(tokens.next(), Some(Token::AnyChar));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
+    fn next_char() {
+        let mut tokens = Tokenizer::new("a");
+        assert_eq!(tokens.next(), Some(Token::Char('a')));
         assert_eq!(tokens.next(), None);
     }
 
