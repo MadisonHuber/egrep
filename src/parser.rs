@@ -111,6 +111,12 @@ mod public_api {
             res
         );
     }
+
+    #[test]
+    fn parse_err() {
+        let res = Parser::parse(Tokenizer::new("(a))"));
+        assert_eq!(Err(format!("Expected end of input, found RParen")), res);
+    }
 }
 
 /**
