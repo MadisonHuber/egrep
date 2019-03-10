@@ -1,4 +1,3 @@
-use std::iter::Peekable;
 use std::str::Chars;
 
 /**
@@ -37,13 +36,13 @@ pub enum Token {
  * iterator over a &str's Chars.
  */
 pub struct Tokenizer<'str> {
-    chars: Peekable<Chars<'str>>,
+    chars: Chars<'str>,
 }
 
 impl<'str> Tokenizer<'str> {
     pub fn new(input: &'str str) -> Tokenizer {
         Tokenizer {
-            chars: input.chars().peekable(),
+            chars: input.chars(),
         }
     }
 }
