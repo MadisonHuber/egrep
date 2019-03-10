@@ -108,7 +108,6 @@ mod iterator {
         assert_eq!(tokens.next(), None);
     }
 
-
     #[test]
     fn next_kleene_star() {
         let mut tokens = Tokenizer::new("*");
