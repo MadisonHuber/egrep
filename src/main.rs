@@ -27,6 +27,9 @@ struct Options {
 
     #[structopt(short = "t", long = "tokens", help = "Show Tokens")]
     tokens: bool,
+
+    #[structopt(short = "d", long = "dot", help = "Produce dot representation of NFA")]
+    dot: bool,
 }
 
 pub mod tokenizer;
@@ -50,6 +53,12 @@ fn eval(input: &str, options: &Options) {
 
     if options.parse {
         eval_show_parse(input);
+    }
+
+    if options.dot {
+        let nfa = NFA::from(input).unwrap();
+        println!("{}", nfa_dot(&nfa));
+        std::process::exit(0);
     }
 }
 
