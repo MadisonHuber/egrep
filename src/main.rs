@@ -34,6 +34,10 @@ use self::tokenizer::Tokenizer;
 pub mod parser;
 use self::parser::Parser;
 
+pub mod nfa;
+use self::nfa::NFA;
+use self::nfa::helpers::nfa_dot;
+
 fn main() {
     let opt = Options::from_args();
     eval(&opt.pattern, &opt);
