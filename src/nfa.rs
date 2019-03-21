@@ -156,16 +156,12 @@ impl NFA {
             },
             AST::Catenation(lhs, rhs) => {
                 let mut left = self.gen_fragment(&lhs);
-                dbg!(&left);
                 let right = self.gen_fragment(&rhs);
-                dbg!(&right);
-                dbg!(&right.start);
-                dbg!(&self);
-                self.join_fragment(&left, right.start);
-                //self.join(left.start, right.start);
-                dbg!(&self);
-                dbg!(&left);
-                left
+                self.join(left.start, right.start);
+                Fragment {
+                    start: left.start,
+                    ends: right.ends,
+                }
             }
             node => panic!("Unimplemented branch of gen_fragment: {:?}", node)
         }
