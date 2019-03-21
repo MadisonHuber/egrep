@@ -54,7 +54,9 @@ impl NFA {
         nfa.join(nfa.start, body.start);
 
         let end = nfa.add(End);
+        dbg!(&body);
         nfa.join_fragment(&body, end);
+                dbg!(&nfa);
 
         Ok(nfa)
     }
@@ -152,6 +154,19 @@ impl NFA {
                     ends: vec![state],
                 }
             },
+            AST::Catenation(lhs, rhs) => {
+                let mut left = self.gen_fragment(&lhs);
+                dbg!(&left);
+                let right = self.gen_fragment(&rhs);
+                dbg!(&right);
+                dbg!(&right.start);
+                dbg!(&self);
+                self.join_fragment(&left, right.start);
+                //self.join(left.start, right.start);
+                dbg!(&self);
+                dbg!(&left);
+                left
+            }
             node => panic!("Unimplemented branch of gen_fragment: {:?}", node)
         }
     }
@@ -160,8 +175,10 @@ impl NFA {
      * Join all the loose ends of a fragment to another StateId.
      */
     fn join_fragment(&mut self, lhs: &Fragment, to: StateId) {
+        dbg!(&to);
         for end in &lhs.ends {
             self.join(*end, to);
+            dbg!(&lhs);
         }
     }
 
