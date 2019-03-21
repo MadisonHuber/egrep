@@ -145,6 +145,13 @@ impl NFA {
                     ends: vec![state],
                 }
             },
+            AST::Char(c) => {
+                let state = self.add(Match(Char::Literal(*c), None));
+                Fragment {
+                    start: state,
+                    ends: vec![state],
+                }
+            },
             node => panic!("Unimplemented branch of gen_fragment: {:?}", node)
         }
     }
