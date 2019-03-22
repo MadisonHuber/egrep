@@ -56,7 +56,7 @@ impl NFA {
         let end = nfa.add(End);
         dbg!(&body);
         nfa.join_fragment(&body, end);
-                dbg!(&nfa);
+        dbg!(&nfa);
 
         Ok(nfa)
     }
@@ -176,7 +176,15 @@ impl NFA {
                     ends: endings,
                 }
             },
-            node => panic!("Unimplemented branch of gen_fragment: {:?}", node)
+            AST::Closure(c) => {
+                let child = self.gen_fragment(&c);
+                let split = self.add(Split(Some(child.start), None));
+                self.join_fragment(&child, split);
+                Fragment {
+                    start: split,
+                    ends: vec![split],
+                }
+            }
         }
     }
 
