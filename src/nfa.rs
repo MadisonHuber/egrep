@@ -146,7 +146,9 @@ impl NFA {
     }
 
     /**
-     * Helper for gen_fragment AST::AnyChar
+     * Helper for gen_fragment AST::AnyChar.
+     * Creates a Match state with AnyChar and 
+     * returns corresponding Fragment.
      */
     fn gen_any(&mut self) -> Fragment {
         let state = self.add(Match(Char::Any, None));
@@ -158,6 +160,8 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::Char
+     * Creates a Match state with Char and
+     * returns corresponding Fragment.
      */
     fn gen_char(&mut self, c: char) -> Fragment {
         let state = self.add(Match(Char::Literal(c), None));
@@ -169,6 +173,9 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::Catenation
+     * Creates Fragments from left and right hand sides,
+     * and concatenates them (left to right). Returns
+     * corresponding Fragment.
      */
     fn gen_cat(&mut self, lhs: &Box<AST>, rhs: &Box<AST>) -> Fragment {
         let left = self.gen_fragment(&lhs);
@@ -182,6 +189,9 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::Alternation
+     * Creates Fragments from left and right hand sides,
+     * and creates a Split state that connects to both.
+     * Returns corresponding Fragment.
      */
     fn gen_alt(&mut self, lhs: &Box<AST>, rhs: &Box<AST>) -> Fragment {
         let left = self.gen_fragment(&lhs);
@@ -198,6 +208,9 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::Closure
+     * Creates Fragment from child, and creates a 
+     * Split state that connects to child and has an 
+     * unconnected arm. Returns corresponding Fragment.
      */
     fn gen_closure(&mut self, c: &Box<AST>) -> Fragment {
         let child = self.gen_fragment(&c);
