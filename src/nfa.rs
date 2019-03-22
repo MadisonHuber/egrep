@@ -1,6 +1,7 @@
 pub mod helpers;
 
 // Starter code for PS06 - thegrep
+use self::State::*;
 /**
  * thegrep - Tar Heel Extended Global Regular Expression Print
  *
@@ -17,11 +18,9 @@ pub mod helpers;
  * thegrep - Tar Heel Extended Global Regular Expressions Print
  *
  */
-
 use super::parser::Parser;
 use super::parser::AST;
 use super::tokenizer::Tokenizer;
-use self::State::*;
 
 /**
  * ===== Public API =====
@@ -102,7 +101,7 @@ enum Char {
 
 /**
  * Internal representation of a fragment of an NFA being constructed
- * that keeps track of the start ID of the fragment as well as all of 
+ * that keeps track of the start ID of the fragment as well as all of
  * its unjoined end states.
  */
 #[derive(Debug)]
@@ -121,7 +120,7 @@ impl NFA {
     fn new() -> NFA {
         NFA {
             states: vec![],
-            start:  0,
+            start: 0,
         }
     }
 
@@ -140,51 +139,75 @@ impl NFA {
      */
     fn gen_fragment(&mut self, ast: &AST) -> Fragment {
         match ast {
-            AST::AnyChar => {
-                let state = self.add(Match(Char::Any, None));
-                Fragment {
-                    start: state,
-                    ends: vec![state],
-                }
-            },
-            AST::Char(c) => {
-                let state = self.add(Match(Char::Literal(*c), None));
-                Fragment {
-                    start: state,
-                    ends: vec![state],
-                }
-            },
-            AST::Catenation(lhs, rhs) => {
-                let left = self.gen_fragment(&lhs);
-                let right = self.gen_fragment(&rhs);
-                //self.join(left.start, right.start);
-                self.join_fragment(&left, right.start);
-                Fragment {
-                    start: left.start,
-                    ends: right.ends,
-                }
-            },
-            AST::Alternation(lhs, rhs) => {
-                let left = self.gen_fragment(&lhs);
-                let right = self.gen_fragment(&rhs);
-                let split = self.add(Split(Some(left.start), Some(right.start)));
-                let mut endings = left.ends.clone();
-                let mut rights = right.ends.clone();
-                endings.append(&mut rights);
-                Fragment {
-                    start: split,
-                    ends: endings,
-                }
-            },
-            AST::Closure(c) => {
-                let child = self.gen_fragment(&c);
-                let split = self.add(Split(Some(child.start), None));
-                self.join_fragment(&child, split);
-                Fragment {
-                    start: split,
-                    ends: vec![split],
-                }
-            }
+            AST::AnyChar => self.gen_any(),
+            AST::Char(c) => self.gen_char(*c),
+            AST::Catenation(lhs, rhs) => self.gen_cat(lhs, rhs),
+            AST::Alternation(lhs, rhs) => self.gen_alt(lhs, rhs),
+            AST::Closure(c) => self.gen_closure(c),
+        }
+    }
+
+    /**
+     * Helper for gen_fragment AST::AnyChar
+     */
+    fn gen_any(&mut self) -> Fragment {
+        let state = self.add(Match(Char::Any, None));
+        Fragment {
+            start: state,
+            ends: vec![state],
+        }
+    }
+
+    /**
+     * Helper for gen_fragment AST::Char
+     */
+    fn gen_char(&mut self, c: char) -> Fragment {
+        let state = self.add(Match(Char::Literal(c), None));
+        Fragment {
+            start: state,
+            ends: vec![state],
+        }
+    }
+
+    /**
+     * Helper for gen_fragment AST::Catenation
+     */
+    fn gen_cat(&mut self, lhs: &Box<AST>, rhs: &Box<AST>) -> Fragment {
+        let left = self.gen_fragment(&lhs);
+        let right = self.gen_fragment(&rhs);
+        self.join_fragment(&left, right.start);
+        Fragment {
+            start: left.start,
+            ends: right.ends,
+        }
+    }
+
+    /**
+     * Helper for gen_fragment AST::Alternation
+     */
+    fn gen_alt(&mut self, lhs: &Box<AST>, rhs: &Box<AST>) -> Fragment {
+        let left = self.gen_fragment(&lhs);
+        let right = self.gen_fragment(&rhs);
+        let split = self.add(Split(Some(left.start), Some(right.start)));
+        let mut endings = left.ends.clone();
+        let mut rights = right.ends.clone();
+        endings.append(&mut rights);
+        Fragment {
+            start: split,
+            ends: endings,
+        }
+    }
+
+    /**
+     * Helper for gen_fragment AST::Closure
+     */
+    fn gen_closure(&mut self, c: &Box<AST>) -> Fragment {
+        let child = self.gen_fragment(&c);
+        let split = self.add(Split(Some(child.start), None));
+        self.join_fragment(&child, split);
+        Fragment {
+            start: split,
+            ends: vec![split],
         }
     }
 
