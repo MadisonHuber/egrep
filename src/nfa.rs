@@ -197,9 +197,14 @@ impl NFA {
         let left = self.gen_fragment(&lhs);
         let right = self.gen_fragment(&rhs);
         let split = self.add(Split(Some(left.start), Some(right.start)));
+
+        // Take states from ends of left and right Fragments
+        // and combine them into one vector that becomes the
+        // ends of the returned Fragment
         let mut endings = left.ends.clone();
         let mut rights = right.ends.clone();
         endings.append(&mut rights);
+
         Fragment {
             start: split,
             ends: endings,
