@@ -53,9 +53,7 @@ impl NFA {
         nfa.join(nfa.start, body.start);
 
         let end = nfa.add(End);
-        dbg!(&body);
         nfa.join_fragment(&body, end);
-        dbg!(&nfa);
 
         Ok(nfa)
     }
@@ -215,10 +213,8 @@ impl NFA {
      * Join all the loose ends of a fragment to another StateId.
      */
     fn join_fragment(&mut self, lhs: &Fragment, to: StateId) {
-        dbg!(&to);
         for end in &lhs.ends {
             self.join(*end, to);
-            dbg!(&lhs);
         }
     }
 
