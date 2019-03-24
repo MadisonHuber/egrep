@@ -67,6 +67,18 @@ impl NFA {
     }
 }
 
+#[cfg(test)]
+mod accepts_tests {
+    use super::*;
+
+    #[test]
+    fn single_lit_char() {
+        let nfa = NFA::from("a").unwrap();
+        let input = "a";
+        assert!(nfa.accepts(input));
+    }
+}
+
 /**
  * ===== Internal API =====
  */
