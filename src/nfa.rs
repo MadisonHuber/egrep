@@ -63,7 +63,30 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        false
+        let mut itr = input.chars();
+        let mut currStates = vec![1];
+        while let Some(curr) = itr.next() {
+            match self.states[1] {
+                Match(Char::Literal(c), next) => {
+                    if c == curr {
+                        continue;
+                    }
+                }, 
+                Match(Char::Any, next) => {
+                    continue;
+                }
+                _ => {
+                    return false;
+                }
+            }
+        }
+        true
+        /*for state_idx in currStates {
+            match self.states[state_idx] {
+                Match(c, next) => 
+            }
+        }*/
+
     }
 }
 
@@ -76,6 +99,15 @@ mod accepts_tests {
         let nfa = NFA::from("a").unwrap();
         let input = "a";
         assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn single_any_char() {
+        let nfa = NFA::from(".").unwrap();
+        let input = ".";
+        assert!(nfa.accepts(input));
+        let input2 = "b";
+        assert!(nfa.accepts(input2));
     }
 }
 
