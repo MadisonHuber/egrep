@@ -125,12 +125,25 @@ mod accepts_tests {
     }
 
     #[test]
-    fn multi_char_ok() {
+    fn catenation_basic() {
         let nfa = NFA::from("b").unwrap();
         let input = "abc";
         assert!(nfa.accepts(input));
     }
+    
+    #[test]
+    fn catenation_pattern() {
+        let nfa = NFA::from("abc").unwrap();
+        let input = "abc";
+        assert!(nfa.accepts(input));
+    }
 
+    #[test]
+    fn catenation_pattern_string() {
+        let nfa = NFA::from("amin").unwrap();
+        let input = "flamingo";
+        assert!(nfa.accepts(input));
+    }
 }
 
 /**
