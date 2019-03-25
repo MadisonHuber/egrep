@@ -85,15 +85,27 @@ impl NFA {
                     } else {
                         curr_state = start_idx;
                     }
-                }
+                },
                 Match(Char::Any, Some(next)) => {
                     println!("We are in AnyChar");
+                    println!("in anychar in accepts curr is: {}", curr);
+                    // is curr_state end after next line?
+                    // if end of input here
                     curr_state = next;
+                    println!("curr_state: {} and length stuff: {}", curr_state, self.states.len() - 1);
                     if curr_state == self.states.len() - 1 {
                         return true;
+                    } else {
+                        if let Split(Some(_), Some(e)) = self.states[curr_state] {
+                            if e == end_idx {
+                                return true;
+                            }
+                        }
+                        // need this in match char lit too?
+                        // very duct-tape-y still so who knows
                     }
                     continue;
-                }
+                },
                 Split(Some(top), Some(bottom)) => {
                     let s = vec![top, bottom];
                     curr_state = self.split_help(curr_state, curr, s);
@@ -108,18 +120,19 @@ impl NFA {
                         return true;
                     }
                     continue;
-                }
+                },
                 End => {
                     return true;
-                }
+                },
                 _ => {
                     return false;
-                }
+                },
             }
         }
         false
     }
     fn split_help(&self, mut curr_state: StateId, curr: char, mut s: Vec<StateId>) -> StateId {
+        println!("curr in help: {}", curr);
         for state in s {
             match self.states[state] {
                 Match(Char::Literal(c), Some(next)) => {
@@ -132,16 +145,17 @@ impl NFA {
                     } else {
                         continue;
                     }
-                }
+                },
                 Match(Char::Any, Some(next)) => {
+                    println!("anychar in help");
                     curr_state = next;
                     break;
-                }
+                },
                 Split(Some(left), Some(right)) => {
                     s = vec![left, right];
                     curr_state = self.split_help(curr_state, curr, s);
                     continue;
-                }
+                },
                 _ => {}
             }
         }
@@ -261,13 +275,20 @@ mod accepts_tests {
     fn stress_test() {
         let nfa = NFA::from("(a|b.)*").unwrap();
         let input = "bobo";
-        assert!(nfa.accepts(input), false);
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn alt_stress_test() {
+        let nfa = NFA::from("(a|b|c)*").unwrap();
+        let input = "fbc";
+        assert_eq!(nfa.accepts(input), true);
     }
     #[test]
     fn stress_test1() {
         let nfa = NFA::from("(a|bc)*").unwrap();
         let input = "bcbcaa";
-        assert!(nfa.accepts(input), false);
+        assert_eq!(nfa.accepts(input), true);
     }
 }
 
