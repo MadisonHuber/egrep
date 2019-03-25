@@ -64,29 +64,36 @@ impl NFA {
      */
     pub fn accepts(&self, input: &str) -> bool {
         let mut itr = input.chars();
-        let mut currStates = vec![1];
+        let mut curr_state = 1;
         while let Some(curr) = itr.next() {
-            match self.states[1] {
-                Match(Char::Literal(c), next) => {
+            match self.states[curr_state] {
+                Match(Char::Literal(c), Some(next)) => {
                     if c == curr {
+                        curr_state = next;
+                        if curr_state == self.states.len() - 1 {
+                            return true;
+                        }
                         continue;
+                    } else {
+                        curr_state = 1;
                     }
-                }, 
-                Match(Char::Any, next) => {
+                }
+                Match(Char::Any, Some(next)) => {
+                    curr_state = next;
+                    if curr_state == self.states.len() - 1 {
+                        return true;
+                    }
                     continue;
+                }
+                End => {
+                    return true;
                 }
                 _ => {
                     return false;
                 }
             }
         }
-        true
-        /*for state_idx in currStates {
-            match self.states[state_idx] {
-                Match(c, next) => 
-            }
-        }*/
-
+        false
     }
 }
 
@@ -102,6 +109,13 @@ mod accepts_tests {
     }
 
     #[test]
+    fn single_lit_char_wrong() {
+        let nfa = NFA::from("a").unwrap();
+        let input = "h";
+        assert_eq!(nfa.accepts(input), false);
+    }
+
+    #[test]
     fn single_any_char() {
         let nfa = NFA::from(".").unwrap();
         let input = ".";
@@ -109,6 +123,14 @@ mod accepts_tests {
         let input2 = "b";
         assert!(nfa.accepts(input2));
     }
+
+    #[test]
+    fn multi_char_ok() {
+        let nfa = NFA::from("b").unwrap();
+        let input = "abc";
+        assert!(nfa.accepts(input));
+    }
+
 }
 
 /**
@@ -191,7 +213,7 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::AnyChar.
-     * Creates a Match state with AnyChar and 
+     * Creates a Match state with AnyChar and
      * returns corresponding Fragment.
      */
     fn gen_any(&mut self) -> Fragment {
@@ -257,8 +279,8 @@ impl NFA {
 
     /**
      * Helper for gen_fragment AST::Closure
-     * Creates Fragment from child, and creates a 
-     * Split state that connects to child and has an 
+     * Creates Fragment from child, and creates a
+     * Split state that connects to child and has an
      * unconnected arm. Returns corresponding Fragment.
      */
     fn gen_closure(&mut self, c: &Box<AST>) -> Fragment {
