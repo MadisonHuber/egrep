@@ -93,6 +93,7 @@ impl NFA {
                 }
                 Split(Some(top), Some(bottom)) => {
                     let s = vec![top, bottom];
+                    /*
                     for state in s {
                         match self.states[state] {
                             Match(Char::Literal(c), Some(next)) => {
@@ -115,8 +116,17 @@ impl NFA {
                                 }
                                 break;
                             }
+                            Split(Some(left), Some(right)) => {
+                                s = vec![left, right];
+                                continue;
+                            }
                             _ => {}
                         }
+                    }
+                    */
+                    curr_state = self.split_help(curr_state, curr, s);
+                    if curr_state == self.states.len() - 1 {
+                        return true;
                     }
                     continue;
                 }
@@ -129,6 +139,33 @@ impl NFA {
             }
         }
         false
+    }
+    fn split_help(&self, mut curr_state: StateId, curr: char, mut s: Vec<StateId>) -> StateId {
+        for state in s {
+            match self.states[state] {
+                Match(Char::Literal(c), Some(next)) => {
+                    println!("Entered match");
+                    println!("{}", c);
+                    if c == curr {
+                        curr_state = next;
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+                Match(Char::Any, Some(next)) => {
+                    curr_state = next;
+                    break;
+                }
+                Split(Some(left), Some(right)) => {
+                    s = vec![left, right];
+                    curr_state = self.split_help(curr_state, curr, s);
+                    continue;
+                }
+                _ => {}
+            }
+        }
+        curr_state
     }
 }
 
@@ -185,6 +222,35 @@ mod accepts_tests {
         let nfa = NFA::from("a|b").unwrap();
         let input = "b";
         assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn alternation_intermediate() {
+        let nfa = NFA::from("ab|c").unwrap();
+        let input = "ab";
+        assert_eq!(nfa.accepts(input), true);
+        let input = "c";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn alternation_repeated() {
+        let nfa = NFA::from("a|b|c").unwrap();
+        let input = "ab";
+        assert_eq!(nfa.accepts(input), true);
+        let input = "c";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn closure_basic() {
+        let nfa = NFA::from("a*").unwrap();
+        let input = "aa";
+        assert!(nfa.accepts(input));
+        //    let input = "baa";
+        //   assert!(nfa.accepts(input));
+        //  let input = "aaa";
+        // assert!(nfa.accepts(input));
     }
 }
 
