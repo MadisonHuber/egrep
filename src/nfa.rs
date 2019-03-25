@@ -64,10 +64,16 @@ impl NFA {
      */
     pub fn accepts(&self, input: &str) -> bool {
         let mut itr = input.chars();
-        let mut curr_state = 1;
+        let mut start_idx = 0;
+        if let Start(Some(n)) = self.states[0] {
+            start_idx = n;
+        }
+        let mut curr_state = start_idx;
         while let Some(curr) = itr.next() {
             match self.states[curr_state] {
                 Match(Char::Literal(c), Some(next)) => {
+                    println!("{}", c);
+                    println!("{}", curr_state);
                     if c == curr {
                         curr_state = next;
                         if curr_state == self.states.len() - 1 {
@@ -75,13 +81,42 @@ impl NFA {
                         }
                         continue;
                     } else {
-                        curr_state = 1;
+                        curr_state = start_idx;
                     }
                 }
                 Match(Char::Any, Some(next)) => {
                     curr_state = next;
                     if curr_state == self.states.len() - 1 {
                         return true;
+                    }
+                    continue;
+                }
+                Split(Some(top), Some(bottom)) => {
+                    let s = vec![top, bottom];
+                    for state in s {
+                        match self.states[state] {
+                            Match(Char::Literal(c), Some(next)) => {
+                                println!("Entered match");
+                                println!("{}", c);
+                                if c == curr {
+                                    curr_state = next;
+                                    if curr_state == self.states.len() - 1 {
+                                        return true;
+                                    }
+                                    break;
+                                } else {
+                                    continue;
+                                }
+                            }
+                            Match(Char::Any, Some(next)) => {
+                                curr_state = next;
+                                if curr_state == self.states.len() - 1 {
+                                    return true;
+                                }
+                                break;
+                            }
+                            _ => {}
+                        }
                     }
                     continue;
                 }
@@ -130,7 +165,7 @@ mod accepts_tests {
         let input = "abc";
         assert!(nfa.accepts(input));
     }
-    
+
     #[test]
     fn catenation_pattern() {
         let nfa = NFA::from("abc").unwrap();
@@ -143,6 +178,13 @@ mod accepts_tests {
         let nfa = NFA::from("amin").unwrap();
         let input = "flamingo";
         assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn alternation_basic() {
+        let nfa = NFA::from("a|b").unwrap();
+        let input = "b";
+        assert_eq!(nfa.accepts(input), true);
     }
 }
 
