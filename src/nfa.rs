@@ -63,11 +63,13 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        let mut itr = input.chars();
+        let mut itr = input.chars().peekable();
         let mut start_idx = 0;
+        let end_idx: usize = self.states.len() - 1;
         if let Start(Some(n)) = self.states[0] {
             start_idx = n;
         }
+        println!("{}", itr.peek().unwrap());
         let mut curr_state = start_idx;
         while let Some(curr) = itr.next() {
             match self.states[curr_state] {
@@ -85,6 +87,7 @@ impl NFA {
                     }
                 }
                 Match(Char::Any, Some(next)) => {
+                    println!("We are in AnyChar");
                     curr_state = next;
                     if curr_state == self.states.len() - 1 {
                         return true;
@@ -93,38 +96,14 @@ impl NFA {
                 }
                 Split(Some(top), Some(bottom)) => {
                     let s = vec![top, bottom];
-                    /*
-                    for state in s {
-                        match self.states[state] {
-                            Match(Char::Literal(c), Some(next)) => {
-                                println!("Entered match");
-                                println!("{}", c);
-                                if c == curr {
-                                    curr_state = next;
-                                    if curr_state == self.states.len() - 1 {
-                                        return true;
-                                    }
-                                    break;
-                                } else {
-                                    continue;
-                                }
+                    curr_state = self.split_help(curr_state, curr, s);
+                    if itr.peek() == None {
+                        if let Split(Some(_), Some(e)) = self.states[curr_state] {
+                            if e == end_idx {
+                                return true;
                             }
-                            Match(Char::Any, Some(next)) => {
-                                curr_state = next;
-                                if curr_state == self.states.len() - 1 {
-                                    return true;
-                                }
-                                break;
-                            }
-                            Split(Some(left), Some(right)) => {
-                                s = vec![left, right];
-                                continue;
-                            }
-                            _ => {}
                         }
                     }
-                    */
-                    curr_state = self.split_help(curr_state, curr, s);
                     if curr_state == self.states.len() - 1 {
                         return true;
                     }
@@ -148,6 +127,7 @@ impl NFA {
                     println!("{}", c);
                     if c == curr {
                         curr_state = next;
+                        println!("Actually matches");
                         break;
                     } else {
                         continue;
@@ -247,10 +227,47 @@ mod accepts_tests {
         let nfa = NFA::from("a*").unwrap();
         let input = "aa";
         assert!(nfa.accepts(input));
-        //    let input = "baa";
-        //   assert!(nfa.accepts(input));
-        //  let input = "aaa";
-        // assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn closure_basic1() {
+        let nfa = NFA::from("a*").unwrap();
+        let input = "baa";
+        assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn closure_basic2() {
+        let nfa = NFA::from("a*").unwrap();
+        let input = "aaa";
+        assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn closure_in_string() {
+        let nfa = NFA::from("ab*c").unwrap();
+        let input = "abbbbbbc";
+        assert!(nfa.accepts(input));
+    }
+
+    #[test]
+    fn closure_fail() {
+        let nfa = NFA::from("ab*c").unwrap();
+        let input = "abbbb";
+        assert_eq!(nfa.accepts(input), false);
+    }
+
+    #[test]
+    fn stress_test() {
+        let nfa = NFA::from("(a|b.)*").unwrap();
+        let input = "bobo";
+        assert!(nfa.accepts(input), false);
+    }
+    #[test]
+    fn stress_test1() {
+        let nfa = NFA::from("(a|bc)*").unwrap();
+        let input = "bcbcaa";
+        assert!(nfa.accepts(input), false);
     }
 }
 
