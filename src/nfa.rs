@@ -69,7 +69,7 @@ impl NFA {
         if let Start(Some(n)) = self.states[0] {
             start_idx = n;
         }
-        println!("{}", itr.peek().unwrap());
+        // println!("{}", itr.peek().unwrap());
         let mut curr_state = start_idx;
         while let Some(curr) = itr.next() {
             match self.states[curr_state] {
@@ -93,16 +93,16 @@ impl NFA {
                     }
                 }
                 Match(Char::Any, Some(next)) => {
-                    println!("We are in AnyChar");
-                    println!("in anychar in accepts curr is: {}", curr);
+                    // println!("We are in AnyChar");
+                    // println!("in anychar in accepts curr is: {}", curr);
                     // is curr_state end after next line?
                     // if end of input here
                     curr_state = next;
-                    println!(
+                    /*println!(
                         "curr_state: {} and length stuff: {}",
                         curr_state,
                         self.states.len() - 1
-                    );
+                    );*/
                     if curr_state == self.states.len() - 1 {
                         return true;
                     } else {
@@ -121,15 +121,15 @@ impl NFA {
                     curr_state = dbg!(self.split_help(curr_state, curr, s));
                     dbg!(&curr_state);
                     if itr.peek() == None {
-                        println!("Shouldn't be here!");
+                        // println!("Shouldn't be here!");
                         if let Split(Some(_), Some(e)) = self.states[curr_state] {
                             if e == end_idx {
                                 return true;
                             }
                         }
                     }
-                    println!("AAAsplit curr_state is {}", curr_state);
-                    println!("AAAlength stuff in split is {}", self.states.len() - 1);
+                    // println!("AAAsplit curr_state is {}", curr_state);
+                    // println!("AAAlength stuff in split is {}", self.states.len() - 1);
                     if curr_state == self.states.len() - 1 {
                         return true;
                     }
@@ -146,23 +146,23 @@ impl NFA {
         false
     }
     fn split_help(&self, mut curr_state: StateId, curr: char, mut s: Vec<StateId>) -> StateId {
-        println!("curr in help: {}", curr);
+        // println!("curr in help: {}", curr);
         for state in s {
             match self.states[state] {
                 Match(Char::Literal(c), Some(next)) => {
-                    println!("Entered match");
-                    println!("c in helper match {}", c);
+                    // println!("Entered match");
+                    // println!("c in helper match {}", c);
                     if c == curr {
                         curr_state = next;
-                        println!("Actually matches");
-                        println!("Curr state here: {}", curr_state);
+                        // println!("Actually matches");
+                        // println!("Curr state here: {}", curr_state);
                         break;
                     } else {
                         continue;
                     }
                 }
                 Match(Char::Any, Some(next)) => {
-                    println!("anychar in help");
+                    // println!("anychar in help");
                     curr_state = next;
                     break;
                 }
@@ -178,7 +178,7 @@ impl NFA {
                 _ => {}
             }
         }
-        println!("returning curr_state in helper is: {}", curr_state);
+        // println!("returning curr_state in helper is: {}", curr_state);
         curr_state
     }
 }
