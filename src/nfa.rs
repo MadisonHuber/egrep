@@ -74,25 +74,35 @@ impl NFA {
         while let Some(curr) = itr.next() {
             match self.states[curr_state] {
                 Match(Char::Literal(c), Some(next)) => {
-                    println!("{}", c);
-                    println!("{}", curr_state);
+//                    println!("{}", c);
+ //                   println!("{}", curr_state);
                     if c == curr {
                         curr_state = next;
                         if curr_state == self.states.len() - 1 {
                             return true;
+                        } else {
+                            if let Split(Some(_), Some(e)) = self.states[curr_state] {
+                                if e == end_idx {
+                                    return true;
+                                }
+                            }
                         }
                         continue;
                     } else {
                         curr_state = start_idx;
                     }
-                },
+                }
                 Match(Char::Any, Some(next)) => {
                     println!("We are in AnyChar");
                     println!("in anychar in accepts curr is: {}", curr);
                     // is curr_state end after next line?
                     // if end of input here
                     curr_state = next;
-                    println!("curr_state: {} and length stuff: {}", curr_state, self.states.len() - 1);
+                    println!(
+                        "curr_state: {} and length stuff: {}",
+                        curr_state,
+                        self.states.len() - 1
+                    );
                     if curr_state == self.states.len() - 1 {
                         return true;
                     } else {
@@ -101,32 +111,36 @@ impl NFA {
                                 return true;
                             }
                         }
-                        // need this in match char lit too?
                         // very duct-tape-y still so who knows
                     }
                     continue;
-                },
+                }
                 Split(Some(top), Some(bottom)) => {
-                    let s = vec![top, bottom];
-                    curr_state = self.split_help(curr_state, curr, s);
+                    let s = vec![bottom, top];
+                    //let s = vec![top, bottom];
+                    curr_state = dbg!(self.split_help(curr_state, curr, s));
+                    dbg!(&curr_state);
                     if itr.peek() == None {
+                        println!("Shouldn't be here!");
                         if let Split(Some(_), Some(e)) = self.states[curr_state] {
                             if e == end_idx {
                                 return true;
                             }
                         }
                     }
+                    println!("AAAsplit curr_state is {}", curr_state);
+                    println!("AAAlength stuff in split is {}", self.states.len() - 1);
                     if curr_state == self.states.len() - 1 {
                         return true;
                     }
                     continue;
-                },
+                }
                 End => {
                     return true;
-                },
+                }
                 _ => {
                     return false;
-                },
+                }
             }
         }
         false
@@ -137,28 +151,34 @@ impl NFA {
             match self.states[state] {
                 Match(Char::Literal(c), Some(next)) => {
                     println!("Entered match");
-                    println!("{}", c);
+                    println!("c in helper match {}", c);
                     if c == curr {
                         curr_state = next;
                         println!("Actually matches");
+                        println!("Curr state here: {}", curr_state);
                         break;
                     } else {
                         continue;
                     }
-                },
+                }
                 Match(Char::Any, Some(next)) => {
                     println!("anychar in help");
                     curr_state = next;
                     break;
-                },
+                }
                 Split(Some(left), Some(right)) => {
-                    s = vec![left, right];
+                    s = vec![right, left];
+                    //s = vec![left, right];
                     curr_state = self.split_help(curr_state, curr, s);
-                    continue;
-                },
+                    //continue;
+                    break;
+                    // break instead of continue since assume recursive call will just make
+                    // everything work out?
+                }
                 _ => {}
             }
         }
+        println!("returning curr_state in helper is: {}", curr_state);
         curr_state
     }
 }
@@ -191,14 +211,14 @@ mod accepts_tests {
     }
 
     #[test]
-    fn catenation_basic() {
+    fn extra_input() {
         let nfa = NFA::from("b").unwrap();
         let input = "abc";
         assert!(nfa.accepts(input));
     }
 
     #[test]
-    fn catenation_pattern() {
+    fn catenation_pattern_exact() {
         let nfa = NFA::from("abc").unwrap();
         let input = "abc";
         assert!(nfa.accepts(input));
@@ -244,24 +264,24 @@ mod accepts_tests {
     }
 
     #[test]
-    fn closure_basic1() {
+    fn closure_extra_input() {
         let nfa = NFA::from("a*").unwrap();
         let input = "baa";
         assert!(nfa.accepts(input));
     }
 
     #[test]
-    fn closure_basic2() {
+    fn closure_longer_input() {
         let nfa = NFA::from("a*").unwrap();
         let input = "aaa";
         assert!(nfa.accepts(input));
     }
 
     #[test]
-    fn closure_in_string() {
+    fn closure_in_middle_of_pattern() {
         let nfa = NFA::from("ab*c").unwrap();
         let input = "abbbbbbc";
-        assert!(nfa.accepts(input));
+        assert_eq!(nfa.accepts(input), true);
     }
 
     #[test]
@@ -272,22 +292,44 @@ mod accepts_tests {
     }
 
     #[test]
-    fn stress_test() {
+    fn stress_test_any() {
         let nfa = NFA::from("(a|b.)*").unwrap();
         let input = "bobo";
         assert_eq!(nfa.accepts(input), true);
     }
 
     #[test]
-    fn alt_stress_test() {
+    fn multiple_alt_closure() {
         let nfa = NFA::from("(a|b|c)*").unwrap();
         let input = "fbc";
         assert_eq!(nfa.accepts(input), true);
     }
+
     #[test]
-    fn stress_test1() {
+    fn stress_test_lit_long() {
         let nfa = NFA::from("(a|bc)*").unwrap();
         let input = "bcbcaa";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn stress_test_lit_short() {
+        let nfa = NFA::from("(a|bc)*").unwrap();
+        let input = "bcbc";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn any_closure() {
+        let nfa = NFA::from("a.*c").unwrap();
+        let input = "adfgc";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn closure_alt() {
+        let nfa = NFA::from("a.*(d|c)").unwrap();
+        let input = "adfgc";
         assert_eq!(nfa.accepts(input), true);
     }
 }
