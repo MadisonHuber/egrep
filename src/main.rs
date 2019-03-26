@@ -63,11 +63,13 @@ fn eval(input: &str, options: &Options) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
-
+     
+    let nfa = NFA::from(input).unwrap();
+    // let nfa = NFA::from("nfa").unwrap();
     let result = if options.paths.len() > 0 {
-        eval_files(&options)
+        eval_files(&options, &nfa)
     } else {
-        eval_stdin()
+        eval_stdin(&nfa)
     };
 
     if let Err(e) = result {
@@ -95,24 +97,27 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io;
 
-fn eval_files(opt: &Options) -> io::Result<()> {
+fn eval_files(opt: &Options, nfa: &NFA) -> io::Result<()> {
     for path in opt.paths.iter() {
         let file = File::open(path)?;
         let reader = io::BufReader::new(file);
-        eval_lines(reader)?;
+        eval_lines(reader, nfa)?;
     }
     Ok(())
 }
 
-fn eval_stdin() -> io::Result<()> {
+fn eval_stdin(nfa: &NFA) -> io::Result<()> {
     let stdin = io::stdin();
     let reader = stdin.lock();
-    eval_lines(reader)
+    eval_lines(reader, nfa)
 }
 
-fn eval_lines<R: BufRead>(reader: R) -> io::Result<()> {
+fn eval_lines<R: BufRead>(reader: R, nfa: &NFA) -> io::Result<()> {
     for line_result in reader.lines() {
-        println!("{}", line_result?);
+        let line = line_result?;
+        if nfa.accepts(&line) {
+            println!("{}", line);
+        } 
     }
     Ok(())
 }
