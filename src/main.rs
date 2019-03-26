@@ -30,6 +30,9 @@ struct Options {
 
     #[structopt(short = "d", long = "dot", help = "Produce dot representation of NFA")]
     dot: bool,
+
+    #[structopt(help = "FILES")]
+    paths: Vec<String>,
 }
 
 pub mod tokenizer;
@@ -60,6 +63,16 @@ fn eval(input: &str, options: &Options) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
+
+    let result = if options.paths.len() > 0 {
+        eval_files(&options)
+    } else {
+        eval_stdin()
+    };
+
+    if let Err(e) = result {
+        eprintln!("{}", e);
+    }
 }
 
 fn eval_show_tokens(input: &str) {
@@ -77,3 +90,30 @@ fn eval_show_parse(input: &str) {
         Err(msg) => eprintln!("thegrep: {}", msg),
     }
 }
+
+use std::fs::File;
+use std::io::BufRead;
+use std::io;
+
+fn eval_files(opt: &Options) -> io::Result<()> {
+    for path in opt.paths.iter() {
+        let file = File::open(path)?;
+        let reader = io::BufReader::new(file);
+        eval_lines(reader)?;
+    }
+    Ok(())
+}
+
+fn eval_stdin() -> io::Result<()> {
+    let stdin = io::stdin();
+    let reader = stdin.lock();
+    eval_lines(reader)
+}
+
+fn eval_lines<R: BufRead>(reader: R) -> io::Result<()> {
+    for line_result in reader.lines() {
+        println!("{}", line_result?);
+    }
+    Ok(())
+}
+
