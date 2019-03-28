@@ -63,7 +63,11 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        let mut itr = input.chars().peekable();
+        // loop through i = 0..input.len()
+        'outer: for i in 0..input.len() {
+        // itr input[i..]
+        let test_str = &input[i..];
+        let mut itr = test_str.chars().peekable();
         let mut start_idx = 0;
         let end_idx: usize = self.states.len() - 1;
         if let Start(Some(n)) = self.states[0] {
@@ -71,7 +75,7 @@ impl NFA {
         }
         // println!("{}", itr.peek().unwrap());
         let mut curr_state = start_idx;
-        while let Some(curr) = itr.next() {
+        'inner: while let Some(curr) = itr.next() {
             match self.states[curr_state] {
                 Match(Char::Literal(c), Some(next)) => {
 //                    println!("{}", c);
@@ -87,7 +91,7 @@ impl NFA {
                                 }
                             }
                         }
-                        continue;
+                        continue 'inner;
                     } else {
                         curr_state = start_idx;
                     }
@@ -113,7 +117,7 @@ impl NFA {
                         }
                         // very duct-tape-y still so who knows
                     }
-                    continue;
+                    continue 'inner;
                 }
                 Split(Some(top), Some(bottom)) => {
                     let s = vec![bottom, top];
@@ -133,15 +137,16 @@ impl NFA {
                     if curr_state == self.states.len() - 1 {
                         return true;
                     }
-                    continue;
+                    continue 'inner;
                 }
                 End => {
                     return true;
                 }
                 _ => {
-                    return false;
+                    continue 'outer;
                 }
             }
+        }
         }
         false
     }
@@ -330,6 +335,27 @@ mod accepts_tests {
     fn closure_alt() {
         let nfa = NFA::from("a.*(d|c)").unwrap();
         let input = "adfgc";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn fab() {
+        let nfa = NFA::from("fab").unwrap();
+        let input = "fafab";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn aaab() {
+        let nfa = NFA::from("aaab").unwrap();
+        let input = "abaaaaabc";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn abaa() {
+        let nfa = NFA::from("abaa").unwrap();
+        let input = "ababaa";
         assert_eq!(nfa.accepts(input), true);
     }
 }
