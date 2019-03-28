@@ -64,10 +64,14 @@ impl NFA {
      */
     pub fn accepts(&self, input: &str) -> bool {
         // loop through i = 0..input.len()
-        'outer: for i in 0..input.len() {
+        //'outer: for i in 0..input.len() {
         // itr input[i..]
-        let test_str = &input[i..];
-        let mut itr = test_str.chars().peekable();
+        //let test_str = &input[i..];
+        let mut itr = &mut input.chars().peekable();
+        'outer: while let Some(oc) = itr.peek() {
+            let inner_itr: Vec<char> = itr.collect();
+            itr.next();
+            //let mut inner_itr = &mut t.iter().peekable();
         let mut start_idx = 0;
         let end_idx: usize = self.states.len() - 1;
         if let Start(Some(n)) = self.states[0] {
@@ -75,7 +79,8 @@ impl NFA {
         }
         // println!("{}", itr.peek().unwrap());
         let mut curr_state = start_idx;
-        'inner: while let Some(curr) = itr.next() {
+        'inner: for curr in inner_itr {
+            println!("curr {}", curr);
             match self.states[curr_state] {
                 Match(Char::Literal(c), Some(next)) => {
 //                    println!("{}", c);
