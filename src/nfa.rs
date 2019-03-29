@@ -67,19 +67,23 @@ impl NFA {
         //'outer: for i in 0..input.len() {
         // itr input[i..]
         //let test_str = &input[i..];
-        let mut itr = &mut input.chars().peekable();
-        'outer: while let Some(oc) = itr.peek() {
-            let inner_itr: Vec<char> = itr.collect();
-            itr.next();
-            //let mut inner_itr = &mut t.iter().peekable();
+        let  itr: Vec<char> = input.chars().collect();
+        let mut count: usize = 0;
+        // loop through all the way
+        'outer: while count < itr.len() {
+
         let mut start_idx = 0;
         let end_idx: usize = self.states.len() - 1;
         if let Start(Some(n)) = self.states[0] {
             start_idx = n;
         }
+        dbg!(&itr);
         // println!("{}", itr.peek().unwrap());
         let mut curr_state = start_idx;
-        'inner: for curr in inner_itr {
+        println!("just above inner start");
+        'inner: for i in count..itr.len() {
+            let curr = itr[i];
+            // hererererererere
             println!("curr {}", curr);
             match self.states[curr_state] {
                 Match(Char::Literal(c), Some(next)) => {
@@ -99,6 +103,7 @@ impl NFA {
                         continue 'inner;
                     } else {
                         curr_state = start_idx;
+                        continue 'inner;
                     }
                 }
                 Match(Char::Any, Some(next)) => {
@@ -122,21 +127,23 @@ impl NFA {
                         }
                         // very duct-tape-y still so who knows
                     }
-                    continue 'inner;
+                    //continue 'inner;
+                    continue 'outer;
+                    // didn't change
                 }
                 Split(Some(top), Some(bottom)) => {
                     let s = vec![bottom, top];
                     //let s = vec![top, bottom];
                     curr_state = dbg!(self.split_help(curr_state, curr, s));
                     dbg!(&curr_state);
-                    if itr.peek() == None {
+                    //if itr.peek() == None {
                         // println!("Shouldn't be here!");
                         if let Split(Some(_), Some(e)) = self.states[curr_state] {
                             if e == end_idx {
                                 return true;
                             }
                         }
-                    }
+                    //}
                     // println!("AAAsplit curr_state is {}", curr_state);
                     // println!("AAAlength stuff in split is {}", self.states.len() - 1);
                     if curr_state == self.states.len() - 1 {
@@ -148,10 +155,15 @@ impl NFA {
                     return true;
                 }
                 _ => {
-                    continue 'outer;
+                    //continue 'outer;
+                    continue 'inner;
+                    // changing that didn't change how many tests we passed
                 }
             }
         }
+                            println!("HERE?");
+                            // maybe eating too much continue 
+                            count += 1;
         }
         false
     }
