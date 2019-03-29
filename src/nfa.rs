@@ -63,72 +63,61 @@ impl NFA {
      * input is accepted by the input string.
      */
     pub fn accepts(&self, input: &str) -> bool {
-        // make this not peekable later??
-        let mut itr = input.chars().peekable();
+        let mut itr = input.chars();
 
-        //let mut curr_states = vec![self.states[0]];
         let mut curr_states = vec![0];
-        /*if let Start(Some(s)) = self.states[0] {
-            curr_states = vec![self.states[s]];
-        }*/
         let mut next_states = Vec::new();
 
         while let Some(curr) = itr.next() {
-            // let next_states = self.find_next(&curr_states, Vec::new(), c);
+            next_states = Vec::new();
             for state in curr_states {
                 match &self.states[state] {
                     Split(Some(lhs), Some(rhs)) => {
-                        // next_states.append(&mut self.find_next(self.states[lhs], &mut next_states, curr));
-                        // next_states.append(&mut self.find_next(self.states[rhs], &mut next_states, curr));
                         self.find_next(*lhs, &mut next_states, curr);
                         self.find_next(*rhs, &mut next_states, curr);
-                    },
+                    }
                     Match(match_char, Some(idx)) => {
-                        // next_states.append(&mut self.find_next(self.states[idx], &mut next_states, curr));
-                        self.find_next(*idx, &mut next_states, curr);
-                    },
+                        self.find_next(state, &mut next_states, curr);
+                    }
                     Start(Some(idx)) => {
-                        // next_states.append(&mut self.find_next(self.states[idx], &mut next_states, curr));
                         self.find_next(*idx, &mut next_states, curr);
-                    },
-                    _ => {/*End so nothing?*/},
+                    }
+                    End => {
+                        return true;
+                    }
+                    _ => { /*need this for Start(None) so nothing*/ }
                 }
-                //next_states.append(&mut self.find_next(state, next_states, curr));
             }
 
             curr_states = next_states;
-            // reset next_states to be empty
-            next_states = Vec::new();
+
+            // contains
+            // may have multiple possible states so end may not be first in that possibiliities vector
+            if curr_states.contains(&(self.states.len() - 1)) {
+                return true;
+            }
         }
-        if let End = self.states[curr_states[0]] {
-            true
-        } else {
-            false
-        }
+
+        false
     }
-    
-    // Change next_states to be a Vec<StateId>
-    // fuck
+
+    // curr_state is state id we want to see if matches
     fn find_next(&self, curr_state: StateId, next_states: &mut Vec<StateId>, curr_char: char) {
         match self.states[curr_state] {
             Match(Char::Literal(c), Some(id)) => {
-                if let Split(Some(id_1), Some(id_2)) = self.states[id] {
-                    self.find_next(id, next_states, curr_char);
-                }
                 if c == curr_char {
                     next_states.push(id);
                 }
             }
             Match(Char::Any, Some(id)) => {
-                // next_states.push(self.states[*id]);
-                if let Split(Some(id_1), Some(id_2)) = self.states[id] {
-                    self.find_next(id, next_states, curr_char);
-                }
                 next_states.push(id);
             }
             Split(Some(id_1), Some(id_2)) => {
                 self.find_next(id_1, next_states, curr_char);
                 self.find_next(id_2, next_states, curr_char);
+            }
+            End => {
+                next_states.push(curr_state);
             }
             _ => {}
         }
@@ -164,7 +153,8 @@ mod accepts_tests {
 
     #[test]
     fn extra_input() {
-        let nfa = NFA::from("b").unwrap();
+        // need it at end too? (it being .*)
+        let nfa = NFA::from(".*b").unwrap();
         let input = "abc";
         assert!(nfa.accepts(input));
     }
@@ -178,7 +168,7 @@ mod accepts_tests {
 
     #[test]
     fn catenation_pattern_string() {
-        let nfa = NFA::from("amin").unwrap();
+        let nfa = NFA::from(".*amin").unwrap();
         let input = "flamingo";
         assert!(nfa.accepts(input));
     }
@@ -208,7 +198,7 @@ mod accepts_tests {
         assert_eq!(nfa.accepts(input), true);
     }
 
-    /*#[test]
+    #[test]
     fn closure_basic() {
         let nfa = NFA::from("a*").unwrap();
         let input = "aa";
@@ -217,7 +207,7 @@ mod accepts_tests {
 
     #[test]
     fn closure_extra_input() {
-        let nfa = NFA::from("a*").unwrap();
+        let nfa = NFA::from(".*a*").unwrap();
         let input = "baa";
         assert!(nfa.accepts(input));
     }
@@ -252,7 +242,7 @@ mod accepts_tests {
 
     #[test]
     fn multiple_alt_closure() {
-        let nfa = NFA::from("(a|b|c)*").unwrap();
+        let nfa = NFA::from(".*(a|b|c)*").unwrap();
         let input = "fbc";
         assert_eq!(nfa.accepts(input), true);
     }
@@ -269,9 +259,9 @@ mod accepts_tests {
         let nfa = NFA::from("(a|bc)*").unwrap();
         let input = "bcbc";
         assert_eq!(nfa.accepts(input), true);
-    }*/
+    }
 
-    /*#[test]
+    #[test]
     fn any_closure() {
         let nfa = NFA::from("a.*c").unwrap();
         let input = "adfgc";
@@ -283,25 +273,26 @@ mod accepts_tests {
         let nfa = NFA::from("a.*(d|c)").unwrap();
         let input = "adfgc";
         assert_eq!(nfa.accepts(input), true);
-    }*/
+    }
 
     #[test]
     fn fab() {
-        let nfa = NFA::from("fab").unwrap();
+        let nfa = NFA::from(".*fab").unwrap();
+        // not getting state 6 on faF
         let input = "fafab";
         assert_eq!(nfa.accepts(input), true);
     }
 
     #[test]
     fn aaab() {
-        let nfa = NFA::from("aaab").unwrap();
+        let nfa = NFA::from(".*aaab").unwrap();
         let input = "abaaaaabc";
         assert_eq!(nfa.accepts(input), true);
     }
 
     #[test]
     fn abaa() {
-        let nfa = NFA::from("abaa").unwrap();
+        let nfa = NFA::from(".*abaa").unwrap();
         let input = "ababaa";
         assert_eq!(nfa.accepts(input), true);
     }

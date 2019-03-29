@@ -64,7 +64,9 @@ fn eval(input: &str, options: &Options) {
         std::process::exit(0);
     }
      
-    let nfa = NFA::from(input).unwrap();
+    let mut input_mod = String::from(".*");
+    input_mod.push_str(input);
+    let nfa = NFA::from(&input_mod).unwrap();
     // let nfa = NFA::from("nfa").unwrap();
     let result = if options.paths.len() > 0 {
         eval_files(&options, &nfa)
