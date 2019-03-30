@@ -65,22 +65,35 @@ impl NFA {
     pub fn accepts(&self, input: &str) -> bool {
         let mut itr = input.chars();
 
-        let mut curr_states = vec![0];
+        //let mut curr_states = vec![0];
         let mut next_states = Vec::new();
+        let mut curr_states = vec![0];
+        self.find_next(0, &mut next_states);
+        curr_states = next_states;
+
+        //dbg!(&curr_states);
+        //if curr_states.contains(&(self.states.len() - 1)) {
+        //    return true;
+        //}
 
         while let Some(curr) = itr.next() {
             next_states = Vec::new();
             for state in curr_states {
                 match &self.states[state] {
                     Split(Some(lhs), Some(rhs)) => {
-                        self.find_next(*lhs, &mut next_states, curr);
-                        self.find_next(*rhs, &mut next_states, curr);
+                        self.find_next(*lhs, &mut next_states);
+                        self.find_next(*rhs, &mut next_states);
                     }
-                    Match(match_char, Some(idx)) => {
-                        self.find_next(state, &mut next_states, curr);
+                    Match(Char::Any, Some(idx)) => {
+                        self.find_next(*idx, &mut next_states);
+                    }
+                    Match(Char::Literal(c), Some(idx)) => {
+                        if *c == curr {
+                            self.find_next(*idx, &mut next_states);
+                        }
                     }
                     Start(Some(idx)) => {
-                        self.find_next(*idx, &mut next_states, curr);
+                        self.find_next(*idx, &mut next_states);
                     }
                     End => {
                         return true;
@@ -98,28 +111,33 @@ impl NFA {
             }
         }
 
+        if curr_states.contains(&(self.states.len() - 1)) {
+            return true;
+        }
+
         false
     }
 
     // curr_state is state id we want to see if matches
-    fn find_next(&self, curr_state: StateId, next_states: &mut Vec<StateId>, curr_char: char) {
+    fn find_next(&self, curr_state: StateId, next_states: &mut Vec<StateId>) {
         match self.states[curr_state] {
+            Start(Some(id)) => {
+                self.find_next(id, next_states);
+            }
             Match(Char::Literal(c), Some(id)) => {
-                if c == curr_char {
-                    next_states.push(id);
-                }
+                next_states.push(curr_state);
             }
             Match(Char::Any, Some(id)) => {
-                next_states.push(id);
+                next_states.push(curr_state);
             }
             Split(Some(id_1), Some(id_2)) => {
-                self.find_next(id_1, next_states, curr_char);
-                self.find_next(id_2, next_states, curr_char);
+                self.find_next(id_1, next_states);
+                self.find_next(id_2, next_states);
             }
             End => {
                 next_states.push(curr_state);
             }
-            _ => {}
+            _ => { /*for Start with None*/ }
         }
     }
 }
@@ -294,6 +312,14 @@ mod accepts_tests {
     fn abaa() {
         let nfa = NFA::from(".*abaa").unwrap();
         let input = "ababaa";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn empty() {
+        let nfa = NFA::from(".*").unwrap();
+        let input = "
+        ";
         assert_eq!(nfa.accepts(input), true);
     }
 }
