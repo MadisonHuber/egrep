@@ -541,4 +541,12 @@ mod fragment_tests {
         assert_eq!(dot_rep, dot_string);
     }
 
+    #[test]
+    fn cat() {
+        let nfa = NFA::from("ab").unwrap();
+        let dot_rep = nfa_dot(&nfa);
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 1\n\t1 -> 2 [label=\"a\"]\n\t2 -> 3 [label=\"b\"]\n\t3 [shape=\"doublecircle\"]\n}}");
+        assert_eq!(dot_rep, dot_string);
+    }
+
 }
