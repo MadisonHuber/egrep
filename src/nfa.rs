@@ -73,7 +73,7 @@ impl NFA {
         let mut curr_states = next_states;
 
         while let Some(curr) = itr.next() {
-            // Reset next states so the next states can be regenerated 
+            // Reset next states so the next states can be regenerated
             next_states = Vec::new();
 
             // Add to next states all possible next states for all current states
@@ -132,7 +132,7 @@ impl NFA {
                 self.find_next(id, next_states);
             }
             Match(_, Some(_)) => {
-                // Base case, add StateId to next states  
+                // Base case, add StateId to next states
                 next_states.push(curr_state);
             }
             Split(Some(id_1), Some(id_2)) => {
@@ -524,4 +524,21 @@ impl NFA {
             End => {}
         }
     }
+}
+
+#[cfg(test)]
+mod fragment_tests {
+    use super::*;
+    use crate::nfa::helpers::nfa_dot;
+
+    #[test]
+    fn char() {
+        let nfa = NFA::from("a");
+        let dot_rep = nfa_dot(&nfa.unwrap());
+        let dot_string = format!(
+            "digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 1\n\t1 -> 2 [label=\"a\"]\n\t2 [shape=\"doublecircle\"]\n}}"
+        );
+        assert_eq!(dot_rep, dot_string);
+    }
+
 }
