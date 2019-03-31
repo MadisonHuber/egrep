@@ -65,83 +65,100 @@ impl NFA {
     pub fn accepts(&self, input: &str) -> bool {
         let mut itr = input.chars();
 
-        //let mut curr_states = vec![0];
+        // List of next states after Start is generated in helper function
         let mut next_states = Vec::new();
-        let mut curr_states = vec![0];
         self.find_next(0, &mut next_states);
-        curr_states = next_states;
 
-        //dbg!(&curr_states);
-        //if curr_states.contains(&(self.states.len() - 1)) {
-        //    return true;
-        //}
+        // Step forward by making next states the current states
+        let mut curr_states = next_states;
 
         while let Some(curr) = itr.next() {
+            // Reset next states so the next states can be regenerated 
             next_states = Vec::new();
+
+            // Add to next states all possible next states for all current states
             for state in curr_states {
-                match &self.states[state] {
+                // curr_states only holds state indices, so actual State must be matched against
+                match self.states[state] {
                     Split(Some(lhs), Some(rhs)) => {
-                        self.find_next(*lhs, &mut next_states);
-                        self.find_next(*rhs, &mut next_states);
+                        // Call helper twice for both ends of Split
+                        self.find_next(lhs, &mut next_states);
+                        self.find_next(rhs, &mut next_states);
                     }
                     Match(Char::Any, Some(idx)) => {
-                        self.find_next(*idx, &mut next_states);
+                        self.find_next(idx, &mut next_states);
                     }
                     Match(Char::Literal(c), Some(idx)) => {
-                        if *c == curr {
-                            self.find_next(*idx, &mut next_states);
+                        // If char in input matches char in Match, call helper
+                        if c == curr {
+                            self.find_next(idx, &mut next_states);
                         }
                     }
                     Start(Some(idx)) => {
-                        self.find_next(*idx, &mut next_states);
+                        self.find_next(idx, &mut next_states);
                     }
-                    End => {
+                    /*End => {
                         return true;
-                    }
+                    }*/
                     _ => { /*need this for Start(None) so nothing*/ }
                 }
             }
 
+            // Step forward by making next states the current states
             curr_states = next_states;
 
-            // contains
-            // may have multiple possible states so end may not be first in that possibiliities vector
+            // Check to see if End state is in current states, if so
+            // We found a matching input string and return true!
             if curr_states.contains(&(self.states.len() - 1)) {
                 return true;
             }
         }
 
+        // Checks for End states in case where input string is a blank line.
         if curr_states.contains(&(self.states.len() - 1)) {
             return true;
         }
 
+        // If End state is never reached, not a match,
+        // return false
         false
     }
 
-    // curr_state is state id we want to see if matches
+    /**
+     * Given a current StateId, find all possible next states
+     * from that State.
+     */
     fn find_next(&self, curr_state: StateId, next_states: &mut Vec<StateId>) {
+        // curr_state is a StateId, so actual State must be matched against
         match self.states[curr_state] {
             Start(Some(id)) => {
                 self.find_next(id, next_states);
             }
-            Match(Char::Literal(c), Some(id)) => {
+            Match(_, Some(_)) => {
+                // Base case, add StateId to next states  
                 next_states.push(curr_state);
             }
-            Match(Char::Any, Some(id)) => {
+            /*Match(Char::Any, Some(id)) => {
                 next_states.push(curr_state);
-            }
+            }*/
             Split(Some(id_1), Some(id_2)) => {
+                // Recursive case, recursive call for both ends of Split
+                // to zoom past epsilon transitions
                 self.find_next(id_1, next_states);
                 self.find_next(id_2, next_states);
             }
             End => {
+                // Base case, add StateId to next states
                 next_states.push(curr_state);
             }
-            _ => { /*for Start with None*/ }
+            _ => { /*for State pointing to None*/ }
         }
     }
 }
 
+/**
+ * Unit tests for `accepts` method.
+ */
 #[cfg(test)]
 mod accepts_tests {
     use super::*;
