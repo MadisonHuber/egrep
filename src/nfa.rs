@@ -97,9 +97,6 @@ impl NFA {
                     Start(Some(idx)) => {
                         self.find_next(idx, &mut next_states);
                     }
-                    /*End => {
-                        return true;
-                    }*/
                     _ => { /*need this for Start(None) so nothing*/ }
                 }
             }
@@ -138,9 +135,6 @@ impl NFA {
                 // Base case, add StateId to next states  
                 next_states.push(curr_state);
             }
-            /*Match(Char::Any, Some(id)) => {
-                next_states.push(curr_state);
-            }*/
             Split(Some(id_1), Some(id_2)) => {
                 // Recursive case, recursive call for both ends of Split
                 // to zoom past epsilon transitions
