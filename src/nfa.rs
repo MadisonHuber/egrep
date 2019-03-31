@@ -533,8 +533,8 @@ mod fragment_tests {
 
     #[test]
     fn char() {
-        let nfa = NFA::from("a");
-        let dot_rep = nfa_dot(&nfa.unwrap());
+        let nfa = NFA::from("a").unwrap();
+        let dot_rep = nfa_dot(&nfa);
         let dot_string = format!(
             "digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 1\n\t1 -> 2 [label=\"a\"]\n\t2 [shape=\"doublecircle\"]\n}}"
         );
@@ -555,6 +555,14 @@ mod fragment_tests {
         let dot_rep = nfa_dot(&nfa);
         let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 3\n\t1 -> 4 [label=\"a\"]\n\t2 -> 4 [label=\"b\"]\n\t3 -> 2 [label=\"ε\"]\n\t3 -> 1 [label=\"ε\"]\n\t4 [shape=\"doublecircle\"]\n}}");
         assert_eq!(dot_rep, dot_string);
+    }
+
+    #[test]
+    fn clos() {
+        let nfa = NFA::from(".*").unwrap();
+        let dot_rep = nfa_dot(&nfa);
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 2\n\t1 -> 2 [label=\"ANY\"]\n\t2 -> 3 [label=\"ε\"]\n\t2 -> 1 [label=\"ε\"]\n\t3 [shape=\"doublecircle\"]
+}}");
     }
 
 }
