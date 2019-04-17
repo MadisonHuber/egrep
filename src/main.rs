@@ -31,6 +31,9 @@ struct Options {
     #[structopt(short = "d", long = "dot", help = "Produce dot representation of NFA")]
     dot: bool,
 
+    #[structopt(short = "g", long = "gen", help = "Generates random acceptable strings from regex", default_value = "0")]
+    num: u64,
+
     #[structopt(help = "FILES")]
     paths: Vec<String>,
 }
@@ -64,6 +67,11 @@ fn eval(input: &str, options: &Options) {
         std::process::exit(0);
     }
      
+    if options.num > 0 {
+        let nfa = NFA::from(input).unwrap();
+        // string_gen(&nfa);
+    }
+
     let mut input_mod = String::from(".*");
     input_mod.push_str(input);
     let nfa = NFA::from(&input_mod).unwrap();
