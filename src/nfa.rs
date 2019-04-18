@@ -504,9 +504,17 @@ impl NFA {
     }
 
     fn gen_plus(&mut self, c: &Box<AST>) -> Fragment {
+        let child = self.gen_fragment(&c);
+        let split = self.add_state(Split(Some(child.start), None));
+        // self.join(split, child.start);
+        self.join_fragment(&child, split);
+        match self.states[split] {
+            Split(ref mut next, _) => *next = Some(child.start),
+            _ => {},
+        }
         Fragment {
-            start: 0,
-            ends: Vec::new(),
+            start: child.start,
+            ends: vec![split],
         }
     }
 
