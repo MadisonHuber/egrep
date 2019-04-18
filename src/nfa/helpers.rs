@@ -51,3 +51,42 @@ impl std::fmt::Display for Char {
         }
     }
 }
+
+use rand::prelude::*;
+use rand::distributions::Alphanumeric;
+
+pub fn gen(nfa: &NFA, num: usize) -> Vec<String> {
+    let mut strings: Vec<String> = Vec::new();
+    while strings.len() < num {
+        let mut s = String::new();
+        let mut idx = 0;
+        loop {
+            match &nfa.states[idx] {
+                Start(Some(id)) => idx = *id,
+                Match(c, Some(id)) => {
+                    // if c is a char literal, push that onto s
+                    if let Char::Literal(ch) = &c {
+                        s.push(*ch);
+                    } else {
+                        // push random char since any
+                        s.push(thread_rng().sample(Alphanumeric));
+                    }
+                    idx = *id;
+                },
+                Split(Some(lhs), Some(rhs)) => {
+                    if random() {
+                        idx = *lhs;
+                    } else {
+                        idx = *rhs;
+                    }
+                },
+                End => {
+                    strings.push(s);
+                    break; // exits loop
+                },
+                _ => break,
+            }
+        }
+    }
+    strings
+}

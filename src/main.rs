@@ -32,7 +32,7 @@ struct Options {
     dot: bool,
 
     #[structopt(short = "g", long = "gen", help = "Generates random acceptable strings from regex", default_value = "0")]
-    num: u64,
+    num: usize,
 
     #[structopt(help = "FILES")]
     paths: Vec<String>,
@@ -46,6 +46,9 @@ use self::parser::Parser;
 pub mod nfa;
 use self::nfa::NFA;
 use self::nfa::helpers::nfa_dot;
+use self::nfa::helpers::gen;
+
+// pub mod gen;
 
 fn main() {
     let opt = Options::from_args();
@@ -69,8 +72,13 @@ fn eval(input: &str, options: &Options) {
      
     if options.num > 0 {
         let nfa = NFA::from(input).unwrap();
-        // string_gen(&nfa);
-    }
+        let strings = gen(&nfa, options.num);
+        for string in strings {
+            println!("{}", string);
+        }
+    } else {
+        println!("else");
+    //}
 
     let mut input_mod = String::from(".*");
     input_mod.push_str(input);
@@ -85,6 +93,7 @@ fn eval(input: &str, options: &Options) {
     if let Err(e) = result {
         eprintln!("{}", e);
     }
+}
 }
 
 fn eval_show_tokens(input: &str) {
