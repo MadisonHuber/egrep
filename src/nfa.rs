@@ -606,6 +606,7 @@ impl Add for NFA {
             }
             idx += 1;
         }
+        idx = 0;
         length = new_nfa.len();
         while idx < rhs.states.len() {
             match &rhs.states[idx] {
@@ -642,6 +643,7 @@ impl Add for NFA {
 #[cfg(test)]
 mod add_tests {
     use super::*;
+    use crate::nfa::helpers::nfa_dot;
 
     #[test]
     fn add_basic() {
@@ -649,5 +651,44 @@ mod add_tests {
         let nfa_2 = NFA::from("(c|d)").unwrap();
         let nfa_cat = nfa + nfa_2;
         assert!(nfa_cat.accepts("ac"));
+    }
+
+    #[test]
+    fn add_concat() {
+        let nfa = NFA::from("ab").unwrap();
+        let nfa_2 = NFA::from("cd").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("abcd"));
+    }
+
+    #[test]
+    fn add_concat_bad() {
+        let nfa = NFA::from("ab").unwrap();
+        let nfa_2 = NFA::from("cd").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(!nfa_cat.accepts("eabcd"));
+    }
+
+    #[test]
+    fn add_kleene_concat() {
+        let nfa = NFA::from("a*").unwrap();
+        let nfa_2 = NFA::from("b*").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("a"));
+        assert!(nfa_cat.accepts("b"));
+        assert!(nfa_cat.accepts("ab"));
+        assert!(nfa_cat.accepts("aabbb"));
+    }
+
+    #[test]
+    fn add_stress() {
+        let nfa = NFA::from("a*").unwrap();
+        let nfa_2 = NFA::from("(b|c)d*").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("b"));
+        assert!(nfa_cat.accepts("ab"));
+        assert!(nfa_cat.accepts("bd"));
+        assert!(nfa_cat.accepts("bdd"));
+        // assert!(nfa_2.accepts("bd"));
     }
 }
