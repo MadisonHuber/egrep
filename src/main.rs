@@ -31,7 +31,12 @@ struct Options {
     #[structopt(short = "d", long = "dot", help = "Produce dot representation of NFA")]
     dot: bool,
 
-    #[structopt(short = "g", long = "gen", help = "Generates random acceptable strings from regex", default_value = "0")]
+    #[structopt(
+        short = "g",
+        long = "gen",
+        help = "Generates random acceptable strings from regex",
+        default_value = "0"
+    )]
     num: usize,
 
     #[structopt(help = "FILES")]
@@ -44,9 +49,9 @@ pub mod parser;
 use self::parser::Parser;
 
 pub mod nfa;
-use self::nfa::NFA;
-use self::nfa::helpers::nfa_dot;
 use self::nfa::helpers::gen;
+use self::nfa::helpers::nfa_dot;
+use self::nfa::NFA;
 
 // pub mod gen;
 
@@ -69,21 +74,19 @@ fn eval(input: &str, options: &Options) {
         println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
-     
+
     if options.num > 0 {
         let nfa = NFA::from(input).unwrap();
         let strings = gen(&nfa, options.num);
         for string in strings {
             println!("{}", string);
         }
-    } else {
-        println!("else");
-    //}
+        std::process::exit(0);
+    }
 
     let mut input_mod = String::from(".*");
     input_mod.push_str(input);
     let nfa = NFA::from(&input_mod).unwrap();
-    // let nfa = NFA::from("nfa").unwrap();
     let result = if options.paths.len() > 0 {
         eval_files(&options, &nfa)
     } else {
@@ -93,7 +96,6 @@ fn eval(input: &str, options: &Options) {
     if let Err(e) = result {
         eprintln!("{}", e);
     }
-}
 }
 
 fn eval_show_tokens(input: &str) {
@@ -113,8 +115,8 @@ fn eval_show_parse(input: &str) {
 }
 
 use std::fs::File;
-use std::io::BufRead;
 use std::io;
+use std::io::BufRead;
 
 fn eval_files(opt: &Options, nfa: &NFA) -> io::Result<()> {
     for path in opt.paths.iter() {
@@ -136,8 +138,7 @@ fn eval_lines<R: BufRead>(reader: R, nfa: &NFA) -> io::Result<()> {
         let line = line_result?;
         if nfa.accepts(&line) {
             println!("{}", line);
-        } 
+        }
     }
     Ok(())
 }
-
