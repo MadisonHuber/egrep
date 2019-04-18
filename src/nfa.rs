@@ -1,4 +1,5 @@
 pub mod helpers;
+use std::ops::Add;
 
 // Starter code for PS06 - thegrep
 use self::State::*;
@@ -43,7 +44,7 @@ impl NFA {
     pub fn from(regular_expression: &str) -> Result<NFA, String> {
         let mut nfa = NFA::new();
 
-        let start = nfa.add(Start(None));
+        let start = nfa.add_state(Start(None));
         nfa.start = start;
 
         // Parse the Abstract Syntax Tree of the Regular Expression
@@ -52,7 +53,7 @@ impl NFA {
         let body = nfa.gen_fragment(ast);
         nfa.join(nfa.start, body.start);
 
-        let end = nfa.add(End);
+        let end = nfa.add_state(End);
         nfa.join_fragment(&body, end);
 
         Ok(nfa)
@@ -399,7 +400,7 @@ impl NFA {
     /**
      * Add a state to the NFA and get its arena ID back.
      */
-    fn add(&mut self, state: State) -> StateId {
+    fn add_state(&mut self, state: State) -> StateId {
         let idx = self.states.len();
         self.states.push(state);
         idx
@@ -425,7 +426,7 @@ impl NFA {
      * returns corresponding Fragment.
      */
     fn gen_any(&mut self) -> Fragment {
-        let state = self.add(Match(Char::Any, None));
+        let state = self.add_state(Match(Char::Any, None));
         Fragment {
             start: state,
             ends: vec![state],
@@ -438,7 +439,7 @@ impl NFA {
      * returns corresponding Fragment.
      */
     fn gen_char(&mut self, c: char) -> Fragment {
-        let state = self.add(Match(Char::Literal(c), None));
+        let state = self.add_state(Match(Char::Literal(c), None));
         Fragment {
             start: state,
             ends: vec![state],
@@ -470,7 +471,7 @@ impl NFA {
     fn gen_alt(&mut self, lhs: &Box<AST>, rhs: &Box<AST>) -> Fragment {
         let left = self.gen_fragment(&lhs);
         let right = self.gen_fragment(&rhs);
-        let split = self.add(Split(Some(left.start), Some(right.start)));
+        let split = self.add_state(Split(Some(left.start), Some(right.start)));
 
         // Take states from ends of left and right Fragments
         // and combine them into one vector that becomes the
@@ -493,7 +494,7 @@ impl NFA {
      */
     fn gen_closure(&mut self, c: &Box<AST>) -> Fragment {
         let child = self.gen_fragment(&c);
-        let split = self.add(Split(Some(child.start), None));
+        let split = self.add_state(Split(Some(child.start), None));
         self.join_fragment(&child, split);
         Fragment {
             start: split,
@@ -511,11 +512,12 @@ impl NFA {
     }
 
     /**
-     * Join a loose end of one state to another by IDs.
-     * Note in the Split case, only the 2nd ID (rhs) is being bound.
-     * It is assumed when building an NFA with these constructs
-     * that the lhs of an Split state will always be known and bound.
-     */
+    ??? from here until ???END lines may have been inserted/deleted
+         * Join a loose end of one state to another by IDs.
+         * Note in the Split case, only the 2nd ID (rhs) is being bound.
+         * It is assumed when building an NFA with these constructs
+         * that the lhs of an Split state will always be known and bound.
+         */
     fn join(&mut self, from: StateId, to: StateId) {
         match self.states[from] {
             Start(ref mut next) => *next = Some(to),
@@ -573,4 +575,45 @@ mod fragment_tests {
         assert_eq!(dot_rep, dot_string);
     }
 
+}
+
+impl Add for NFA {
+    type Output = NFA;
+    fn add(self, rhs: NFA) -> NFA {
+        let mut idx = 0;
+        let mut new_nfa = Vec::new();
+        while idx < self.states.len() - 1 {
+            //new_nfa.push(self.states[idx]);
+        }
+        let length = new_nfa.len();
+        while idx < rhs.states.len() {
+            match &rhs.states[idx] {
+                Start(Some(id)) => {
+                    let s = Start(Some(*id + length));
+                    new_nfa.push(s);
+                }
+                Match(c, Some(id)) => {
+                    if let Char::Literal(ch) = &c {
+                        new_nfa.push(Match(Char::Literal(*ch), Some(*id + length)));
+                    } else {
+                        new_nfa.push(Match(Char::Any, Some(*id + length)));
+                    }
+                }
+                Split(Some(id_1), Some(id_2)) => {
+                    new_nfa.push(Split(Some(*id_1 + length), Some(*id_2 + length)));
+                }
+                End => {
+                    new_nfa.push(End);
+                }
+                _ => {
+                    break;
+                }
+            }
+            idx += 1;
+        }
+        NFA {
+            start: 0,
+            states: new_nfa,
+        }
+    }
 }
