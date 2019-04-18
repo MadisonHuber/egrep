@@ -582,10 +582,31 @@ impl Add for NFA {
     fn add(self, rhs: NFA) -> NFA {
         let mut idx = 0;
         let mut new_nfa = Vec::new();
+        let mut length = 0;
         while idx < self.states.len() - 1 {
             //new_nfa.push(self.states[idx]);
+            match &self.states[idx] {
+                Start(Some(id)) => {
+                    let s = Start(Some(*id + length));
+                    new_nfa.push(s);
+                }
+                Match(c, Some(id)) => {
+                    if let Char::Literal(ch) = &c {
+                        new_nfa.push(Match(Char::Literal(*ch), Some(*id + length)));
+                    } else {
+                        new_nfa.push(Match(Char::Any, Some(*id + length)));
+                    }
+                }
+                Split(Some(id_1), Some(id_2)) => {
+                    new_nfa.push(Split(Some(*id_1 + length), Some(*id_2 + length)));
+                }
+                _ => {
+                    break;
+                }
+            }
+            idx += 1;
         }
-        let length = new_nfa.len();
+        length = new_nfa.len();
         while idx < rhs.states.len() {
             match &rhs.states[idx] {
                 Start(Some(id)) => {
@@ -615,5 +636,18 @@ impl Add for NFA {
             start: 0,
             states: new_nfa,
         }
+    }
+}
+
+#[cfg(test)]
+mod add_tests {
+    use super::*;
+
+    #[test]
+    fn add_basic() {
+        let nfa = NFA::from("(a|b)").unwrap();
+        let nfa_2 = NFA::from("(c|d)").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("ac"));
     }
 }
