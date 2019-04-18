@@ -19,6 +19,7 @@ pub enum AST {
     Catenation(Box<AST>, Box<AST>),
     Closure(Box<AST>),
     Char(char),
+    OneOrMore(Box<AST>),
     AnyChar,
 }
 
@@ -41,6 +42,10 @@ pub fn ast_char(c: char) -> AST {
 
 pub fn ast_any_char() -> AST {
     AST::AnyChar
+}
+
+pub fn ast_one_or_more(val: AST) -> AST {
+    AST::OneOrMore(Box::new(val))
 }
 
 /* == End Syntax Tree Elements == */
@@ -180,8 +185,8 @@ impl<'tokens> Parser<'tokens> {
         Ok(express)
     }
 
-    // Closure -> <Atom> KleeneStar?
-    fn closure(&mut self) -> Result<AST, String> {
+    // Closure -> <Atom> KleeneStar? KleenePlus?
+    fn kleene(&mut self) -> Result<AST, String> {
         // Take the atom, peek for KleeneStar
         let atm = self.atom()?;
 
@@ -190,6 +195,7 @@ impl<'tokens> Parser<'tokens> {
         if let Some(c) = self.tokens.peek() {
             match c {
                 Token::KleeneStar => self.handle_kleene_star(atm),
+                Token::KleenePlus => self.handle_kleene_plus(atm),
                 _ => Ok(atm),
             }
         } else {
@@ -203,10 +209,16 @@ impl<'tokens> Parser<'tokens> {
         Ok(ast_closure(atom))
     }
 
+    // Consume KleenePlus token, Return OneOrMore Result with atom
+    fn handle_kleene_plus(&mut self, atom: AST) -> Result<AST, String> {
+        self.take_next_token()?;
+        Ok(ast_one_or_more(atom))
+    }
+
     // Catenation -> <Closure> <Catenation>?
     fn catenation(&mut self) -> Result<AST, String> {
         // Take the Closure
-        let closure = self.closure()?;
+        let closure = self.kleene()?;
 
         // Peek for LParen, AnyChar, Char
         // If match is found, give back a Catenation Result
@@ -281,13 +293,13 @@ mod private_api {
 
         #[test]
         fn closure_atom() {
-            assert_eq!(Parser::from("a").closure().unwrap(), ast_char('a'));
+            assert_eq!(Parser::from("a").kleene().unwrap(), ast_char('a'));
         }
 
         #[test]
         fn closure() {
             assert_eq!(
-                Parser::from("b*").closure().unwrap(),
+                Parser::from("b*").kleene().unwrap(),
                 ast_closure(ast_char('b'))
             );
         }
@@ -295,7 +307,7 @@ mod private_api {
         #[test]
         fn closure_parents() {
             assert_eq!(
-                Parser::from("(a)*").closure().unwrap(),
+                Parser::from("(a)*").kleene().unwrap(),
                 ast_closure(ast_char('a'))
             );
         }
@@ -363,6 +375,14 @@ mod private_api {
             assert_eq!(
                 Parser::from("ab*").reg_expr().unwrap(),
                 ast_catenation(ast_char('a'), ast_closure(ast_char('b')))
+            );
+        }
+
+        #[test]
+        fn reg_expr_cat_plus() {
+            assert_eq!(
+                Parser::from("ab+").reg_expr().unwrap(),
+                ast_catenation(ast_char('a'), ast_one_or_more(ast_char('b')))
             );
         }
 

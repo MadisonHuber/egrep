@@ -417,6 +417,7 @@ impl NFA {
             AST::Catenation(lhs, rhs) => self.gen_cat(lhs, rhs),
             AST::Alternation(lhs, rhs) => self.gen_alt(lhs, rhs),
             AST::Closure(c) => self.gen_closure(c),
+            AST::OneOrMore(c) => self.gen_plus(c),
         }
     }
 
@@ -499,6 +500,13 @@ impl NFA {
         Fragment {
             start: split,
             ends: vec![split],
+        }
+    }
+
+    fn gen_plus(&mut self, c: &Box<AST>) -> Fragment {
+        Fragment {
+            start: 0,
+            ends: Vec::new(),
         }
     }
 

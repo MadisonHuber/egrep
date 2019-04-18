@@ -28,6 +28,7 @@ pub enum Token {
     UnionBar,
     KleeneStar,
     AnyChar,
+    KleenePlus,
     Char(char),
 }
 
@@ -66,6 +67,7 @@ impl<'str> Iterator for Tokenizer<'str> {
                 '|' => Token::UnionBar,
                 '*' => Token::KleeneStar,
                 '.' => Token::AnyChar,
+                '+' => Token::KleenePlus,
                 _ => Token::Char(c),
             })
         } else {
@@ -130,8 +132,15 @@ mod iterator {
     }
 
     #[test]
+    fn next_kleene_plus() {
+        let mut tokens = Tokenizer::new("+");
+        assert_eq!(tokens.next(), Some(Token::KleenePlus));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
     fn next_stress_test() {
-        let mut tokens = Tokenizer::new("ab|().*");
+        let mut tokens = Tokenizer::new("ab|().*+");
         assert_eq!(tokens.next(), Some(Token::Char('a')));
         assert_eq!(tokens.next(), Some(Token::Char('b')));
         assert_eq!(tokens.next(), Some(Token::UnionBar));
@@ -139,6 +148,7 @@ mod iterator {
         assert_eq!(tokens.next(), Some(Token::RParen));
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
+        assert_eq!(tokens.next(), Some(Token::KleenePlus));
         assert_eq!(tokens.next(), None);
     }
 }
