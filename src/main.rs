@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 /**
  * thegrep - Tar Heel egrep
  *
