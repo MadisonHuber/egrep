@@ -90,3 +90,83 @@ pub fn gen(nfa: &NFA, num: usize) -> Vec<String> {
     }
     strings
 }
+
+#[cfg(test)]
+mod gen_tests {
+    use super::*;
+
+    #[test]
+    fn gen_4_a() {
+        let nfa = NFA::from("a").unwrap();
+        let strings = gen(&nfa, 4);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_4_any() {
+        let nfa = NFA::from(".").unwrap();
+        let strings = gen(&nfa, 4);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_4_any_closure() {
+        let nfa = NFA::from(".*").unwrap();
+        let strings = gen(&nfa, 4);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_15_any_plus() {
+        let nfa = NFA::from(".+").unwrap();
+        let strings = gen(&nfa, 15);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_1_alt() {
+        let nfa = NFA::from("a|b").unwrap();
+        let strings = gen(&nfa, 1);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_20_alt_cat() {
+        let nfa = NFA::from("ab|cd").unwrap();
+        let strings = gen(&nfa, 20);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    #[test]
+    fn gen_7_all() {
+        let nfa = NFA::from("a(b|c)d*e+f").unwrap();
+        let strings = gen(&nfa, 7);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+
+    /*
+    #[test]
+    fn gen_5_empty() {
+        let nfa = NFA::from("").unwrap();
+        println!("{:?}", nfa);
+        let strings = gen(&nfa, 5);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+    */
+}
