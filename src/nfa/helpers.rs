@@ -159,9 +159,18 @@ mod gen_tests {
     }
 
     #[test]
+    fn gen_7_alt_plus() {
+        // let nfa = NFA::from("(a*|bc)+").unwrap();
+        let nfa = NFA::from("(a|b)+").unwrap();
+        let strings = gen(&nfa, 3);
+        for st in &strings {
+            assert!(nfa.accepts(st));
+        }
+    }
+    
+    #[test]
     fn gen_7_precedence() {
         let nfa = NFA::from("(a*|bc)+").unwrap();
-        //let nfa = NFA::from("(a|b)+").unwrap();
         let strings = gen(&nfa, 3);
         for st in &strings {
             assert!(nfa.accepts(st));
