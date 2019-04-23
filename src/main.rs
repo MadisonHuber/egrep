@@ -73,7 +73,9 @@ fn eval(input: &str, options: &Options) {
 
     if options.dot {
         let nfa = NFA::from(input).unwrap();
-        println!("{}", nfa_dot(&nfa));
+        let nfa1 = NFA::from("ab").unwrap();
+        let nfa2 = nfa + nfa1;
+        println!("{}", nfa_dot(&nfa2));
         std::process::exit(0);
     }
 
