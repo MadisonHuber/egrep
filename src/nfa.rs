@@ -390,12 +390,6 @@ mod accepts_tests {
  * ===== Internal API =====
  */
 type StateId = usize;
-// pass with IDs
-// unless split in which case two back to back calls (seems wroooonnnnggggg) with each l and r ID
-// in the Split
-// then in that helper which we just called
-// match the state we passed in until base case of a Match state and match the char we're dealing
-// with
 
 /**
  * States are the elements of our NFA Graph
@@ -556,7 +550,6 @@ impl NFA {
     fn gen_plus(&mut self, c: &Box<AST>) -> Fragment {
         let child = self.gen_fragment(&c);
         let split = self.add_state(Split(Some(child.start), None));
-        // self.join(split, child.start);
         self.join_fragment(&child, split);
         match self.states[split] {
             Split(ref mut next, _) => *next = Some(child.start),
@@ -642,44 +635,68 @@ mod fragment_tests {
     }
 }
 
+/**
+ * Override the + operator so that when it is applied
+ * to two NFAs, the output is an NFA that is a concatenation
+ * of the two original NFAs.
+ */
+
 impl Add for NFA {
     type Output = NFA;
     fn add(self, rhs: NFA) -> NFA {
-        let mut idx = 0;
+        // Create a new, empty Vec to hold our new NFA states
         let mut new_nfa = Vec::new();
-        let mut length = 0;
+        
+        // We start at the first state of the lhs NFA
+        let mut idx = 0;
+
+        // Iterate through lhs NFA up until End state is reached
         while idx < self.states.len() - 1 {
-            //new_nfa.push(self.states[idx]);
+            // Take out a reference to the current state we are processing
             match &self.states[idx] {
+                // Create a new, identical state to push to the new NFA
                 Start(Some(id)) => {
-                    let s = Start(Some(*id + length));
-                    new_nfa.push(s);
+                    new_nfa.push(Start(Some(*id)));
                 }
                 Match(c, Some(id)) => {
+                    // Must handle the case with an exact character specially
                     if let Char::Literal(ch) = &c {
-                        new_nfa.push(Match(Char::Literal(*ch), Some(*id + length)));
+                        new_nfa.push(Match(Char::Literal(*ch), Some(*id)));
                     } else {
-                        new_nfa.push(Match(Char::Any, Some(*id + length)));
+                        new_nfa.push(Match(Char::Any, Some(*id)));
                     }
                 }
                 Split(Some(id_1), Some(id_2)) => {
-                    new_nfa.push(Split(Some(*id_1 + length), Some(*id_2 + length)));
+                    new_nfa.push(Split(Some(*id_1), Some(*id_2)));
                 }
                 _ => {
                     break;
                 }
             }
+            // Increment idx to move to next state
             idx += 1;
         }
+
+        // Resest idx to start at the first state of the rhs NFA
+        // We are okay with including the Start state twice in the NFA
         idx = 0;
-        length = new_nfa.len();
+
+        // Keep track of length to offset the pointers to indices/States
+        let length = new_nfa.len();
+
+        // Iterate through rhs NFA up through End state
         while idx < rhs.states.len() {
+            // Take out a reference to the current state we are processing
             match &rhs.states[idx] {
+                // Create a new, almost-identical state to push to the new NFA
+                // The "next state(s)" index must be offset by the length of
+                // the array we started with.
                 Start(Some(id)) => {
                     let s = Start(Some(*id + length));
                     new_nfa.push(s);
                 }
                 Match(c, Some(id)) => {
+                    // Must handle the case with an exact character specially
                     if let Char::Literal(ch) = &c {
                         new_nfa.push(Match(Char::Literal(*ch), Some(*id + length)));
                     } else {
@@ -696,8 +713,15 @@ impl Add for NFA {
                     break;
                 }
             }
+
+            // Increment idx to move to the next state
             idx += 1;
         }
+
+        // Now, the new_nfa Vec<State> is complete and represents
+        // the concatenated NFAs.
+        // We create and return a new NFA that starts at index 0,
+        // and that has new_nfa as its States!
         NFA {
             start: 0,
             states: new_nfa,
@@ -754,6 +778,5 @@ mod add_tests {
         assert!(nfa_cat.accepts("ab"));
         assert!(nfa_cat.accepts("bd"));
         assert!(nfa_cat.accepts("bdd"));
-        // assert!(nfa_2.accepts("bd"));
     }
 }
