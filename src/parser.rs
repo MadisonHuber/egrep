@@ -1,4 +1,3 @@
-
 use super::tokenizer::{Token, Tokenizer};
 use std::iter::Peekable;
 
@@ -107,12 +106,42 @@ mod public_api {
     }
 
     #[test]
-    fn parse_all() {
+    fn parse_plus() {
+        let res = Parser::parse(Tokenizer::new("a+")).unwrap();
+        assert_eq!(ast_one_or_more(ast_char('a')), res);
+    }
+
+    #[test]
+    fn parse_closure_hard() {
         let res = Parser::parse(Tokenizer::new("(a|.)c*")).unwrap();
         assert_eq!(
             ast_catenation(
                 ast_alternation(ast_char('a'), ast_any_char()),
                 ast_closure(ast_char('c'))
+            ),
+            res
+        );
+    }
+
+    #[test]
+    fn parse_plus_hard() {
+        let res = Parser::parse(Tokenizer::new("(a|.)c+")).unwrap();
+        assert_eq!(
+            ast_catenation(
+                ast_alternation(ast_char('a'), ast_any_char()),
+                ast_one_or_more(ast_char('c'))
+            ),
+            res
+        );
+    }
+
+    #[test]
+    fn parse_stress() {
+        let res = Parser::parse(Tokenizer::new("(a|bc*)+")).unwrap();
+        assert_eq!(
+            ast_one_or_more(
+                ast_alternation(ast_char('a'),
+                ast_catenation(ast_char('b'), ast_closure(ast_char('c'))))
             ),
             res
         );
