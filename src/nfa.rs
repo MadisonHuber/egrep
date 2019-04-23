@@ -398,7 +398,7 @@ type StateId = usize;
  * - Split is a state with two epsilon transitions out
  * - End is the final accepting state
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum State {
     Start(Option<StateId>),
     Match(Char, Option<StateId>),
@@ -410,7 +410,7 @@ enum State {
  * Chars are the matching label of a non-epsilon edge in the
  * transition diagram representation of the NFA.
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Char {
     Literal(char),
     Any,
@@ -646,43 +646,22 @@ impl Add for NFA {
     fn add(self, rhs: NFA) -> NFA {
         // Create a new, empty Vec to hold our new NFA states
         let mut new_nfa = Vec::new();
-        
-        // We start at the first state of the lhs NFA
+
+        // We will start from the first state of the Vec
         let mut idx = 0;
 
-        // Iterate through lhs NFA up until End state is reached
+        // Iterate through lhs NFA up until End state
+        // Clone each state into new_nfa
         while idx < self.states.len() - 1 {
-            // Take out a reference to the current state we are processing
-            match &self.states[idx] {
-                // Create a new, identical state to push to the new NFA
-                Start(Some(id)) => {
-                    new_nfa.push(Start(Some(*id)));
-                }
-                Match(c, Some(id)) => {
-                    // Must handle the case with an exact character specially
-                    if let Char::Literal(ch) = &c {
-                        new_nfa.push(Match(Char::Literal(*ch), Some(*id)));
-                    } else {
-                        new_nfa.push(Match(Char::Any, Some(*id)));
-                    }
-                }
-                Split(Some(id_1), Some(id_2)) => {
-                    new_nfa.push(Split(Some(*id_1), Some(*id_2)));
-                }
-                _ => {
-                    break;
-                }
-            }
-            // Increment idx to move to next state
+            new_nfa.push(self.states[idx].clone());
             idx += 1;
         }
 
-        // Resest idx to start at the first state of the rhs NFA
-        // We are okay with including the Start state twice in the NFA
-        idx = 0;
-
-        // Keep track of length to offset the pointers to indices/States
+        // Keep track of length to offset the pointers to indices/States when handling rhs
         let length = new_nfa.len();
+
+        // Reset idx, because we will start from the first state of the rhs Vec
+        idx = 0;
 
         // Iterate through rhs NFA up through End state
         while idx < rhs.states.len() {
@@ -692,16 +671,10 @@ impl Add for NFA {
                 // The "next state(s)" index must be offset by the length of
                 // the array we started with.
                 Start(Some(id)) => {
-                    let s = Start(Some(*id + length));
-                    new_nfa.push(s);
+                    new_nfa.push(Start(Some(*id + length)));
                 }
                 Match(c, Some(id)) => {
-                    // Must handle the case with an exact character specially
-                    if let Char::Literal(ch) = &c {
-                        new_nfa.push(Match(Char::Literal(*ch), Some(*id + length)));
-                    } else {
-                        new_nfa.push(Match(Char::Any, Some(*id + length)));
-                    }
+                    new_nfa.push(Match(c.clone(), Some(*id + length)));
                 }
                 Split(Some(id_1), Some(id_2)) => {
                     new_nfa.push(Split(Some(*id_1 + length), Some(*id_2 + length)));
@@ -709,9 +682,7 @@ impl Add for NFA {
                 End => {
                     new_nfa.push(End);
                 }
-                _ => {
-                    break;
-                }
+                _ => { /* Catches cases with None, should never happen */}
             }
 
             // Increment idx to move to the next state
