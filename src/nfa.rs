@@ -70,9 +70,11 @@ impl NFA {
         let mut next_states = Vec::new();
         self.find_next(0, &mut next_states);
 
+        // If we have reached End, return true
         if next_states.contains(&(self.states.len() - 1)) {
             return true;
         }
+
         // Step forward by making next states the current states
         let mut curr_states = next_states;
 
@@ -87,9 +89,10 @@ impl NFA {
                     Split(Some(lhs), Some(rhs)) => {
                         // Call helper twice for both ends of Split
                         self.find_next(rhs, &mut next_states);
-                        if next_states.contains(&(self.states.len() - 1)) {
+                        // If we have reached End, return true
+                        /*if next_states.contains(&(self.states.len() - 1)) {
                             return true;
-                        }
+                        }*/
                         self.find_next(lhs, &mut next_states);
                     }
                     Match(Char::Any, Some(idx)) => {
