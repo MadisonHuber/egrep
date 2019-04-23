@@ -358,7 +358,28 @@ mod accepts_tests {
     }
 
     #[test]
-    fn poop() {
+    fn alt_plus() {
+        let nfa = NFA::from("(a+|b)+").unwrap();
+        let input = "a";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn dot_star_alt_plus() {
+        let nfa = NFA::from(".*(a+|b)+").unwrap();
+        let input = "a";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn cat_clos_plus() {
+        let nfa = NFA::from("(ab*)+").unwrap();
+        let input = "aa";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn stress_all() {
         let nfa = NFA::from("(ab*|cd)+").unwrap();
         let input = "a";
         assert_eq!(nfa.accepts(input), true);
