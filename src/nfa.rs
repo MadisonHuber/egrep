@@ -682,7 +682,73 @@ impl Add for NFA {
                 End => {
                     new_nfa.push(End);
                 }
-                _ => { /* Catches cases with None, should never happen */}
+                _ => { /* Catches cases with None, should never happen */ }
+            }
+
+            // Increment idx to move to the next state
+            idx += 1;
+        }
+
+        // Now, the new_nfa Vec<State> is complete and represents
+        // the concatenated NFAs.
+        // We create and return a new NFA that starts at index 0,
+        // and that has new_nfa as its States!
+        NFA {
+            start: 0,
+            states: new_nfa,
+        }
+    }
+}
+
+/**
+ * Override the + operator so that when it is applied
+ * to two &NFAs, the output is an NFA that is a concatenation
+ * of the two original NFAs.
+ * Using references permits reuse of original NFAs later.
+ */
+
+impl Add<&NFA> for &NFA {
+    type Output = NFA;
+    fn add(self, rhs: &NFA) -> NFA {
+        // Create a new, empty Vec to hold our new NFA states
+        let mut new_nfa = Vec::new();
+
+        // We will start from the first state of the Vec
+        let mut idx = 0;
+
+        // Iterate through lhs NFA up until End state
+        // Clone each state into new_nfa
+        while idx < self.states.len() - 1 {
+            new_nfa.push(self.states[idx].clone());
+            idx += 1;
+        }
+
+        // Keep track of length to offset the pointers to indices/States when handling rhs
+        let length = new_nfa.len();
+
+        // Reset idx, because we will start from the first state of the rhs Vec
+        idx = 0;
+
+        // Iterate through rhs NFA up through End state
+        while idx < rhs.states.len() {
+            // Take out a reference to the current state we are processing
+            match &rhs.states[idx] {
+                // Create a new, almost-identical state to push to the new NFA
+                // The "next state(s)" index must be offset by the length of
+                // the array we started with.
+                Start(Some(id)) => {
+                    new_nfa.push(Start(Some(*id + length)));
+                }
+                Match(c, Some(id)) => {
+                    new_nfa.push(Match(c.clone(), Some(*id + length)));
+                }
+                Split(Some(id_1), Some(id_2)) => {
+                    new_nfa.push(Split(Some(*id_1 + length), Some(*id_2 + length)));
+                }
+                End => {
+                    new_nfa.push(End);
+                }
+                _ => { /* Catches cases with None, should never happen */ }
             }
 
             // Increment idx to move to the next state
@@ -741,10 +807,32 @@ mod add_tests {
     }
 
     #[test]
+    fn add_kleene_concat_plus() {
+        let nfa = NFA::from("a*").unwrap();
+        let nfa_2 = NFA::from("b+").unwrap();
+        let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("ab"));
+        assert!(nfa_cat.accepts("b"));
+        assert!(nfa_cat.accepts("ab"));
+        assert!(nfa_cat.accepts("aabbb"));
+    }
+
+    #[test]
     fn add_stress() {
         let nfa = NFA::from("a*").unwrap();
-        let nfa_2 = NFA::from("(b|c)d*").unwrap();
+        let nfa_2 = NFA::from("(b+|c)d*").unwrap();
         let nfa_cat = nfa + nfa_2;
+        assert!(nfa_cat.accepts("b"));
+        assert!(nfa_cat.accepts("ab"));
+        assert!(nfa_cat.accepts("bd"));
+        assert!(nfa_cat.accepts("bdd"));
+    }
+
+    #[test]
+    fn add_stress_refs() {
+        let nfa = NFA::from("a*").unwrap();
+        let nfa_2 = NFA::from("(b+|c)d*").unwrap();
+        let nfa_cat = &nfa + &nfa_2;
         assert!(nfa_cat.accepts("b"));
         assert!(nfa_cat.accepts("ab"));
         assert!(nfa_cat.accepts("bd"));
