@@ -70,21 +70,27 @@ impl NFA {
         let mut next_states = Vec::new();
         self.find_next(0, &mut next_states);
 
+        if next_states.contains(&(self.states.len() - 1)) {
+            return true;
+        }
         // Step forward by making next states the current states
         let mut curr_states = next_states;
 
         while let Some(curr) = itr.next() {
             // Reset next states so the next states can be regenerated
             next_states = Vec::new();
-
+            println!("In accepts");
             // Add to next states all possible next states for all current states
             for state in curr_states {
                 // curr_states only holds state indices, so actual State must be matched against
                 match self.states[state] {
                     Split(Some(lhs), Some(rhs)) => {
                         // Call helper twice for both ends of Split
-                        self.find_next(lhs, &mut next_states);
                         self.find_next(rhs, &mut next_states);
+                        if next_states.contains(&(self.states.len() - 1)) {
+                            return true;
+                        }
+                        self.find_next(lhs, &mut next_states);
                     }
                     Match(Char::Any, Some(idx)) => {
                         self.find_next(idx, &mut next_states);
@@ -99,6 +105,9 @@ impl NFA {
                         self.find_next(idx, &mut next_states);
                     }
                     _ => { /*need this for Start(None) so nothing*/ }
+                }
+                if next_states.contains(&(self.states.len() - 1)) {
+                    return true;
                 }
             }
 
@@ -139,8 +148,11 @@ impl NFA {
             Split(Some(id_1), Some(id_2)) => {
                 // Recursive case, recursive call for both ends of Split
                 // to zoom past epsilon transitions
-                self.find_next(id_1, next_states);
                 self.find_next(id_2, next_states);
+                if next_states.contains(&(self.states.len() - 1)) {
+                    return;
+                }
+                self.find_next(id_1, next_states);
             }
             End => {
                 // Base case, add StateId to next states
@@ -334,6 +346,20 @@ mod accepts_tests {
         ";
         assert_eq!(nfa.accepts(input), true);
     }
+
+    #[test]
+    fn alt_closure() {
+        let nfa = NFA::from("(a*|b)*").unwrap();
+        let input = "a";
+        assert_eq!(nfa.accepts(input), true);
+    }
+
+    #[test]
+    fn poop() {
+        let nfa = NFA::from("(ab*|cd)+").unwrap();
+        let input = "a";
+        assert_eq!(nfa.accepts(input), true);
+    }
 }
 
 /**
@@ -510,7 +536,7 @@ impl NFA {
         self.join_fragment(&child, split);
         match self.states[split] {
             Split(ref mut next, _) => *next = Some(child.start),
-            _ => {},
+            _ => {}
         }
         Fragment {
             start: child.start,
