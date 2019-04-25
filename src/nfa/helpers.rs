@@ -1,6 +1,6 @@
-use super::NFA;
 use super::Char;
 use super::State::*;
+use super::NFA;
 
 /**
  * Helper functions for visualizing our NFA
@@ -26,16 +26,16 @@ pub fn nfa_dot(nfa: &NFA) -> String {
     let mut dot = String::from("digraph nfa {rankdir=LR; \n\tnode [shape = circle];\n");
     //let mut dot = String::from("digraph nfa {rankdir=LR;\n");
     for (id, state) in nfa.states.iter().enumerate() {
-   //     let concat = concat!("Start", id);
+        //     let concat = concat!("Start", id);
         dot.push_str(&match state {
             // Start(Some(next)) => format!("\tstart [shape=\"none\"]\n\tstart -> {}\n", next),
-            Start(Some(next)) => format!("\t{} -> {} [label=\"Start\"]\n", id, next),
-            Match(c, Some(next)) => format!("\t{} -> {} [label=\"{}\"]\n", id, next, c),
+            Start(Some(next)) => format!("\t{} [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t{} -> {}\n", id, id, next),
+            Match(c, Some(next)) => format!("\t{} [style=\"filled\", fillcolor=\"palegreen2\"]{} -> {} [label=\"{}\"]\n", id, id, next, c),
             Split(Some(lhs), Some(rhs)) => format!(
-                "\t{0} -> {1} [label=\"ε\"]\n\t{0} -> {2} [label=\"ε\"]\n",
+                "\t{0} [style=\"filled\", fillcolor=\"plum\"]{0} -> {1} [label=\"ε\"]\n\t{0} -> {2} [label=\"ε\"]\n",
                 id, rhs, lhs
             ),
-            End => format!("\t{} [shape=\"doublecircle\"]\n", id),
+            End => format!("\t{} [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n", id),
             _ => String::new(),
         });
     }
@@ -55,8 +55,8 @@ impl std::fmt::Display for Char {
     }
 }
 
-use rand::prelude::*;
 use rand::distributions::Alphanumeric;
+use rand::prelude::*;
 
 /**
  * Generate a specified number of random strings that will be accepted by the given nfa. Takes in a
@@ -89,7 +89,7 @@ pub fn gen(nfa: &NFA, num: usize) -> Vec<String> {
                         s.push(thread_rng().sample(Alphanumeric));
                     }
                     idx = *id;
-                },
+                }
                 Split(Some(lhs), Some(rhs)) => {
                     // use random() to generate a random bool
                     // in order to randomly decide which branch of the split to follow
@@ -98,18 +98,20 @@ pub fn gen(nfa: &NFA, num: usize) -> Vec<String> {
                     } else {
                         idx = *rhs;
                     }
-                },
+                }
                 End => {
                     // we've reached the end of the nfa
                     // so push the built-up string onto the strings vec
                     strings.push(s);
-                    
+
                     // made it through the nfa, so break out of the loop
                     break;
-                },
-                _ => { /* default case so match is comprehensive
-                          don't want to do anthing here
-                          since we should never reach this point */ },
+                }
+                _ => {
+                    /* default case so match is comprehensive
+                    don't want to do anthing here
+                    since we should never reach this point */
+                }
             }
         }
     }
@@ -192,7 +194,7 @@ mod gen_tests {
             assert!(nfa.accepts(st));
         }
     }
-    
+
     #[test]
     fn gen_7_alt_closure() {
         let nfa = NFA::from("(a|b)*").unwrap();
