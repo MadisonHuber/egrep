@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 /**
  * thegrep - Tar Heel egrep
  *
@@ -73,9 +71,7 @@ fn eval(input: &str, options: &Options) {
 
     if options.dot {
         let nfa = NFA::from(input).unwrap();
-        let nfa1 = NFA::from("ab").unwrap();
-        let nfa2 = nfa + nfa1;
-        println!("{}", nfa_dot(&nfa2));
+        println!("{}", nfa_dot(&nfa));
         std::process::exit(0);
     }
 

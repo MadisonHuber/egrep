@@ -139,10 +139,10 @@ mod public_api {
     fn parse_stress() {
         let res = Parser::parse(Tokenizer::new("(a|bc*)+")).unwrap();
         assert_eq!(
-            ast_one_or_more(
-                ast_alternation(ast_char('a'),
-                ast_catenation(ast_char('b'), ast_closure(ast_char('c'))))
-            ),
+            ast_one_or_more(ast_alternation(
+                ast_char('a'),
+                ast_catenation(ast_char('b'), ast_closure(ast_char('c')))
+            )),
             res
         );
     }

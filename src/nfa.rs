@@ -596,9 +596,7 @@ mod fragment_tests {
     fn char() {
         let nfa = NFA::from("a").unwrap();
         let dot_rep = nfa_dot(&nfa);
-        let dot_string = format!(
-            "digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 1\n\t1 -> 2 [label=\"a\"]\n\t2 [shape=\"doublecircle\"]\n}}"
-        );
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\t0 [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t0 -> 1\n\t1 [style=\"filled\", fillcolor=\"palegreen2\"]1 -> 2 [label=\"a\"]\n\t2 [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n}}");
         assert_eq!(dot_rep, dot_string);
     }
 
@@ -606,7 +604,7 @@ mod fragment_tests {
     fn cat() {
         let nfa = NFA::from("ab").unwrap();
         let dot_rep = nfa_dot(&nfa);
-        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 1\n\t1 -> 2 [label=\"a\"]\n\t2 -> 3 [label=\"b\"]\n\t3 [shape=\"doublecircle\"]\n}}");
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\t0 [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t0 -> 1\n\t1 [style=\"filled\", fillcolor=\"palegreen2\"]1 -> 2 [label=\"a\"]\n\t2 [style=\"filled\", fillcolor=\"palegreen2\"]2 -> 3 [label=\"b\"]\n\t3 [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n}}");
         assert_eq!(dot_rep, dot_string);
     }
 
@@ -614,7 +612,7 @@ mod fragment_tests {
     fn alt() {
         let nfa = NFA::from("a|b").unwrap();
         let dot_rep = nfa_dot(&nfa);
-        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 3\n\t1 -> 4 [label=\"a\"]\n\t2 -> 4 [label=\"b\"]\n\t3 -> 2 [label=\"ε\"]\n\t3 -> 1 [label=\"ε\"]\n\t4 [shape=\"doublecircle\"]\n}}");
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\t0 [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t0 -> 3\n\t1 [style=\"filled\", fillcolor=\"palegreen2\"]1 -> 4 [label=\"a\"]\n\t2 [style=\"filled\", fillcolor=\"palegreen2\"]2 -> 4 [label=\"b\"]\n\t3 [style=\"filled\", fillcolor=\"plum\"]3 -> 2 [label=\"ε\"]\n\t3 -> 1 [label=\"ε\"]\n\t4 [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n}}");
         assert_eq!(dot_rep, dot_string);
     }
 
@@ -622,7 +620,7 @@ mod fragment_tests {
     fn clos() {
         let nfa = NFA::from(".*").unwrap();
         let dot_rep = nfa_dot(&nfa);
-        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 2\n\t1 -> 2 [label=\"ANY\"]\n\t2 -> 3 [label=\"ε\"]\n\t2 -> 1 [label=\"ε\"]\n\t3 [shape=\"doublecircle\"]\n}}");
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\t0 [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t0 -> 2\n\t1 [style=\"filled\", fillcolor=\"palegreen2\"]1 -> 2 [label=\"ANY\"]\n\t2 [style=\"filled\", fillcolor=\"plum\"]2 -> 3 [label=\"ε\"]\n\t2 -> 1 [label=\"ε\"]\n\t3 [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n}}");
         assert_eq!(dot_rep, dot_string);
     }
 
@@ -630,7 +628,7 @@ mod fragment_tests {
     fn stress() {
         let nfa = NFA::from("(a|b.)*").unwrap();
         let dot_rep = nfa_dot(&nfa);
-        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\tstart [shape=\"none\"]\n\tstart -> 5\n\t1 -> 5 [label=\"a\"]\n\t2 -> 3 [label=\"b\"]\n\t3 -> 5 [label=\"ANY\"]\n\t4 -> 2 [label=\"ε\"]\n\t4 -> 1 [label=\"ε\"]\n\t5 -> 6 [label=\"ε\"]\n\t5 -> 4 [label=\"ε\"]\n\t6 [shape=\"doublecircle\"]\n}}");
+        let dot_string = format!("digraph nfa {{rankdir=LR; \n\tnode [shape = circle];\n\t0 [shape=\"diamond\", style=\"filled\", fillcolor=\"lightskyblue\", label=\"Start\"]\n\t0 -> 5\n\t1 [style=\"filled\", fillcolor=\"palegreen2\"]1 -> 5 [label=\"a\"]\n\t2 [style=\"filled\", fillcolor=\"palegreen2\"]2 -> 3 [label=\"b\"]\n\t3 [style=\"filled\", fillcolor=\"palegreen2\"]3 -> 5 [label=\"ANY\"]\n\t4 [style=\"filled\", fillcolor=\"plum\"]4 -> 2 [label=\"ε\"]\n\t4 -> 1 [label=\"ε\"]\n\t5 [style=\"filled\", fillcolor=\"plum\"]5 -> 6 [label=\"ε\"]\n\t5 -> 4 [label=\"ε\"]\n\t6 [shape=\"doublecircle\", style=\"filled\", fillcolor=\"lightsalmon\"]\n}}");
         assert_eq!(dot_rep, dot_string);
     }
 }
