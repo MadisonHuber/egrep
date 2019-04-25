@@ -12,7 +12,9 @@ Parsing was approached by creating an enumeration of `AST` types, which represen
 
 Construction of the NFA was approached by using an adaptation of Thompson's Algorithm and connecting `Match` and `Split` `State`s as we recursively traversed the `AST` we produced from parsing. The NFA guided the process of accepting or rejecting input strings based on a regular expression. Input strings were taken either from `stdin` or from files given as command line arguments, and lines containing accepted strings were printed to `stdout`.
 
-The program begins in `main.rs`, which puts Tokenization and Parsing together. We use the `structopt` crate to handle command-line arguments that alter the behavior of the program. The `-t` or `--tokens` flag prints to `stdout` the `Token`s produced during tokenization, the `-p` or `--parse` flag prints to `stdout` a representation of the parsed regular expression, and the `-d` or `--dot` flag will produce a DOT representation of the NFA. Any errors encountered during this process are sent to `stderr`.
+The program begins in `main.rs`, which puts Tokenization and Parsing together. We use the `structopt` crate to handle command-line arguments that alter the behavior of the program. The `-t` or `--tokens` flag prints to `stdout` the `Token`s produced during tokenization, the `-p` or `--parse` flag prints to `stdout` a representation of the parsed regular expression, and the `-d` or `--dot` flag will produce a DOT representation of the NFA. The `-g` or `--gen` flag generates a specified number of random strings that will be accepted by the provided NFA. The number of strings produced is passed as a command-line argument immediately following the flag. Any errors encountered during this process are sent to `stderr`.
+
+We decided to put the `nfa_dot` function (used for creating the DOT representation of the NFA) and the `gen` function (used for producing random strings that are accepted by the NFA) in `nfa/helpers.rs`. This decision was made because these are the only two units of functionality that are not used to build up the NFA and that do not rely on reading strings from `stdin` or from files.
 
 _Collaboration –_
 
