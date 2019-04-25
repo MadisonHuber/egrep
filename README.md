@@ -1,4 +1,6 @@
-# ps05-thegrep-badasscoderladies-mh-af
+# Tar Heel Extended Global Regular Expression Print
+Alana Fiordalisi and Madison Huber
+
 ps05-thegrep-badasscoderladies-mh-af created by GitHub Classroom
 
 
@@ -10,7 +12,9 @@ Tokenization was approached by creating an enumeration of `Token` types and crea
 
 Parsing was approached by creating an enumeration of `AST` types, which represent the different components of a regular expression. Each enumeration variant had its own factory function that abstracted their production. We created an iterator over the `Token`s produced from `Tokenizer`. The `parse()` method begins the process by calling a series of internal helper methods that use mutual recursion and recursive descent to process the tokens according to the grammar. Additional helper methods were used to abstract significant portions of logic from other helper methods, to promote the design principle that all methods should handle only one task.
 
-Construction of the NFA was approached by using an adaptation of Thompson's Algorithm and connecting `Match` and `Split` `State`s as we recursively traversed the `AST` we produced from parsing. The NFA guided the process of accepting or rejecting input strings based on a regular expression. Input strings were taken either from `stdin` or from files given as command line arguments, and lines containing accepted strings were printed to `stdout`.
+Construction of the NFA was approached by using an adaptation of Thompson's Algorithm and connecting `Match` and `Split` `State`s as we recursively traversed the `AST` we produced from parsing. The NFA guided the process of accepting or rejecting input strings based on a regular expression. The program will accept and output an entire line of input if a sequence of characters accepted by the NFA is found within that line. Input strings were taken either from `stdin` or from files given as command line arguments, and lines containing accepted strings were printed to `stdout`.
+
+After the initial construction and use of the NFA was implemented, we extended `nfa.rs` to allow for the concatenation of two NFAs by overloading the addition operator (`+`). The concatenation process does not mutate the two NFAs being operated on. The operator can be used with either two NFAs or two &NFAs. When used with &NFAs, the addition operator does not move the two original NFAs, and so they can be accessed after the concatenation process.
 
 The program begins in `main.rs`, which puts Tokenization and Parsing together. We use the `structopt` crate to handle command-line arguments that alter the behavior of the program. The `-t` or `--tokens` flag prints to `stdout` the `Token`s produced during tokenization, the `-p` or `--parse` flag prints to `stdout` a representation of the parsed regular expression, and the `-d` or `--dot` flag will produce a DOT representation of the NFA. The `-g` or `--gen` flag generates a specified number of random strings that will be accepted by the provided NFA. The number of strings produced is passed as a command-line argument immediately following the flag. Any errors encountered during this process are sent to `stderr`.
 
