@@ -81,7 +81,6 @@ impl NFA {
         while let Some(curr) = itr.next() {
             // Reset next states so the next states can be regenerated
             next_states = Vec::new();
-            println!("In accepts");
             // Add to next states all possible next states for all current states
             for state in curr_states {
                 // curr_states only holds state indices, so actual State must be matched against
@@ -89,10 +88,6 @@ impl NFA {
                     Split(Some(lhs), Some(rhs)) => {
                         // Call helper twice for both ends of Split
                         self.find_next(rhs, &mut next_states);
-                        // If we have reached End, return true
-                        /*if next_states.contains(&(self.states.len() - 1)) {
-                            return true;
-                        }*/
                         self.find_next(lhs, &mut next_states);
                     }
                     Match(Char::Any, Some(idx)) => {
