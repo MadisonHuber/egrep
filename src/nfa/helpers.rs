@@ -23,13 +23,13 @@ pub fn nfa_dump(nfa: &NFA) -> String {
  * Generate a DOT structured string.
  */
 pub fn nfa_dot(nfa: &NFA) -> String {
-   // let mut dot = String::from("digraph nfa {rankdir=LR; \n\tnode [shape = circle];\n");
-    let mut dot = String::from("digraph nfa {rankdir=LR;\n");
+    let mut dot = String::from("digraph nfa {rankdir=LR; \n\tnode [shape = circle];\n");
+    //let mut dot = String::from("digraph nfa {rankdir=LR;\n");
     for (id, state) in nfa.states.iter().enumerate() {
-        let concat = concat!("Start", id);
+   //     let concat = concat!("Start", id);
         dot.push_str(&match state {
             // Start(Some(next)) => format!("\tstart [shape=\"none\"]\n\tstart -> {}\n", next),
-            Start(Some(next)) => format!("\t{} -> {} [shape=doublecircle, label=\"Start\"]\n", concat, next),
+            Start(Some(next)) => format!("\t{} -> {} [label=\"Start\"]\n", id, next),
             Match(c, Some(next)) => format!("\t{} -> {} [label=\"{}\"]\n", id, next, c),
             Split(Some(lhs), Some(rhs)) => format!(
                 "\t{0} -> {1} [label=\"ε\"]\n\t{0} -> {2} [label=\"ε\"]\n",
