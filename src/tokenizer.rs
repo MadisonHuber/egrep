@@ -69,6 +69,7 @@ impl<'str> Iterator for Tokenizer<'str> {
                 '*' => Token::KleeneStar,
                 '.' => Token::AnyChar,
                 '+' => Token::KleenePlus,
+                '^' => Token::StartAnchor,
                 _ => Token::Char(c),
             })
         } else {
@@ -148,7 +149,7 @@ mod iterator {
 
     #[test]
     fn next_stress_test() {
-        let mut tokens = Tokenizer::new("ab|().*+");
+        let mut tokens = Tokenizer::new("ab|().*+^");
         assert_eq!(tokens.next(), Some(Token::Char('a')));
         assert_eq!(tokens.next(), Some(Token::Char('b')));
         assert_eq!(tokens.next(), Some(Token::UnionBar));
@@ -157,6 +158,7 @@ mod iterator {
         assert_eq!(tokens.next(), Some(Token::AnyChar));
         assert_eq!(tokens.next(), Some(Token::KleeneStar));
         assert_eq!(tokens.next(), Some(Token::KleenePlus));
+        assert_eq!(tokens.next(), Some(Token::StartAnchor));
         assert_eq!(tokens.next(), None);
     }
 }
