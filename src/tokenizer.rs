@@ -29,6 +29,7 @@ pub enum Token {
     KleeneStar,
     AnyChar,
     KleenePlus,
+    StartAnchor,
     Char(char),
 }
 
@@ -139,6 +140,13 @@ mod iterator {
     }
 
     #[test]
+    fn next_start_line() {
+        let mut tokens = Tokenizer::new("^");
+        assert_eq!(tokens.next(), Some(Token::StartAnchor));
+        assert_eq!(tokens.next(), None);
+    }
+
+    #[test]
     fn next_stress_test() {
         let mut tokens = Tokenizer::new("ab|().*+");
         assert_eq!(tokens.next(), Some(Token::Char('a')));
@@ -152,3 +160,4 @@ mod iterator {
         assert_eq!(tokens.next(), None);
     }
 }
+
