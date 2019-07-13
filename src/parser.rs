@@ -20,6 +20,7 @@ pub enum AST {
     Closure(Box<AST>),
     Char(char),
     OneOrMore(Box<AST>),
+    StartAnchor(Box<AST>),
     AnyChar,
 }
 
@@ -46,6 +47,10 @@ pub fn ast_any_char() -> AST {
 
 pub fn ast_one_or_more(val: AST) -> AST {
     AST::OneOrMore(Box::new(val))
+}
+
+pub fn ast_start_anchor(val: AST) -> AST {
+    AST::StartAnchor(Box::new(val))
 }
 
 /* == End Syntax Tree Elements == */
@@ -335,7 +340,7 @@ mod private_api {
         }
 
         #[test]
-        fn closure_parents() {
+        fn closure_parens() {
             assert_eq!(
                 Parser::from("(a)*").kleene().unwrap(),
                 ast_closure(ast_char('a'))
@@ -421,6 +426,14 @@ mod private_api {
             assert_eq!(
                 Parser::from("a|b").reg_expr().unwrap(),
                 ast_alternation(ast_char('a'), ast_char('b'))
+            );
+        }
+
+        #[test]
+        fn reg_expr_start_anchor() {
+            assert_eq!(
+                Parser::from("^a").reg_expr().unwrap(),
+                ast_start_anchor(ast_char('a'))
             );
         }
 
