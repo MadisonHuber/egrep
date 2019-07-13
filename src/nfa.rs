@@ -81,7 +81,6 @@ impl NFA {
         while let Some(curr) = itr.next() {
             // Reset next states so the next states can be regenerated
             next_states = Vec::new();
-            println!("In accepts");
             // Add to next states all possible next states for all current states
             for state in curr_states {
                 // curr_states only holds state indices, so actual State must be matched against
