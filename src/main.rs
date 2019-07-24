@@ -60,7 +60,7 @@ fn main() {
     eval(&opt.pattern, &opt);
 }
 
-fn eval(input: &str, options: &Options) {
+fn eval(mut input: &str, options: &Options) {
     if options.tokens {
         eval_show_tokens(input);
     }
@@ -84,7 +84,14 @@ fn eval(input: &str, options: &Options) {
         std::process::exit(0);
     }
 
-    let mut input_mod = String::from(".*");
+    let mut input_mod = String::new();
+    
+    if input.chars().nth(0).unwrap() != '^' {
+        input_mod = String::from(".*");
+    } else {
+        input = input.trim_start_matches('^');
+    }
+
     input_mod.push_str(input);
     let nfa = NFA::from(&input_mod).unwrap();
     let result = if options.paths.len() > 0 {
