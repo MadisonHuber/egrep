@@ -1,6 +1,6 @@
-# ps05-thegrep-badasscoderladies-mh-af
-ps05-thegrep-badasscoderladies-mh-af created by GitHub Classroom
+# `egrep` in Rust
 
+This began as a class pair programming project, but we continued working on it after the semester ended and extending its capabilities beyond what was covered in the Systems Programming course for which we started it.
 
 _Design –_
 
